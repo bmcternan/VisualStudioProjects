@@ -209,11 +209,11 @@ namespace Ingress
             {
                 JobDirTextBox.Text = fc.SelectedPath;
             }
-            UpdateTreeView();
         }
 
         protected void UpdateTreeView()
         {
+            this.JobDirTextBox.Text = _jobDir;
         }
 
         private void NumCamerasNumericUpDown_ValueChanged(object sender, EventArgs e)
@@ -450,6 +450,7 @@ namespace Ingress
                 if (ShowListDialog("Select Scene", ref sel, SceneListBox) == DialogResult.OK)
                 {
                     DestListBox.Items.Add(SceneListBox.Items[sel]);
+                    _destinationScenes.Add(_scenes[sel]);
                     Console.WriteLine("Would use scene \"" + sel);
                 }
 
@@ -462,15 +463,6 @@ namespace Ingress
 
         }
 
-        //private void SourceListBox_KeyPress(object sender, KeyPressEventArgs e)
-        //{
-        //    Console.WriteLine("Key pressed " + e.KeyChar);
-        //    if (e.KeyChar == (Char)(Keys.Delete))
-        //    {
-        //        Console.WriteLine("would delete " + SourceListBox.SelectedIndex);
-        //    }
-        //}
-
         private void SourceListBox_KeyDown(object sender, KeyEventArgs e)
         {
             Console.WriteLine("Key pressed " + (char)e.KeyData);
@@ -480,18 +472,47 @@ namespace Ingress
             }
         }
 
-        private void ExecuteCopyButton_Click(object sender, EventArgs e)/
-        {
-            string cam_name = string.Format("cam_{00}", _currentCamera);
+        private void ExecuteCopyButton_Click(object sender, EventArgs e)
+        { 
+            string cam_name = string.Format("cam_{0:00}", _currentCamera);
             for (int i = 0; i < _sources.Count; i++)
             {
                 if (_destinationScenes[i].Length > 0)
                 {
-                    // Do xcopy //i
-                    // do renam
+                    string sceneDir = _jobDir + "\\" + _destinationScenes[i] + "\\" ;
+                    string cpCmd = string.Format("/c xcopy \"{0}\" \"{1}\" /i", _sources[i].Path(), sceneDir);
+                    string destName = sceneDir + Path.GetFileName(_sources[i].Path());
+                    string mvCmd = string.Format("/c rename \"{0}\" \"{1}{2}\"", destName, cam_name, Path.GetExtension(_sources[i].Path()));
+                    try
+                    {
+                        System.Diagnostics.Process cpProcess = new System.Diagnostics.Process();
+                        cpProcess.StartInfo.UseShellExecute = false;
+                        cpProcess.StartInfo.Arguments = cpCmd ;
+                        cpProcess.StartInfo.FileName = "cmd.exe";
+                        cpProcess.Start();
+                        cpProcess.WaitForExit();
+                        cpProcess.Dispose();
+                        cpProcess.Close();
 
+                        System.Diagnostics.Process mvProcess = new System.Diagnostics.Process();
+                        mvProcess.StartInfo.UseShellExecute = false;
+                        mvProcess.StartInfo.Arguments = mvCmd;
+                        mvProcess.StartInfo.FileName = "cmd.exe";
+                        mvProcess.Start();
+                        mvProcess.WaitForExit();
+                        mvProcess.Dispose();
+                        mvProcess.Close();
+                    }
+                    // If the file is not found, handle the exception and inform the user.
+                    catch (System.ComponentModel.Win32Exception err)
+                    {
+                        Console.WriteLine(cpCmd);
+                        MessageBox.Show("\"" + cpCmd + "\" " + err.Message);
+                    }
                 }
             }
+
+            UpdateTreeView();
         }
     }
 
