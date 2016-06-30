@@ -29,10 +29,19 @@ namespace Ingress
         private List<string> _destinationScenes;
         private int _currentCamera = 0;
 
+        private static IngressForm _instance = null;
+
+        public static IngressForm GetInstance()
+        {
+            return _instance;
+        }
+
         public IngressForm()
         {
             InitializeComponent();
+            _instance = this;
         }
+        
         public void Init()
         {
             if (!_bTreeViewInited)
@@ -82,7 +91,7 @@ namespace Ingress
                     List<string> dirList = new List<string>(Directory.EnumerateDirectories(path));
                     foreach (var dir in dirList)
                     {
-                        string foo = dir.Substring(dir.LastIndexOf("\\") + 1);
+                        string newDirName = dir.Substring(dir.LastIndexOf("\\") + 1);
                         Console.WriteLine("{0}", dir.Substring(dir.LastIndexOf("\\") + 1));
 
                         DirectoryOrFile sub = new DirectoryOrFile();
@@ -92,8 +101,11 @@ namespace Ingress
 
                         if(node == _jobRoot)
                         {
-                            _scenes.Add(foo);
-                            SceneListBox.Items.Add(foo);
+                            if (!_scenes.Contains(newDirName))
+                            {
+                                _scenes.Add(newDirName);
+                                SceneListBox.Items.Add(newDirName);
+                            }
                         }
                     }
                     int num = dirList.Count;
@@ -147,6 +159,28 @@ namespace Ingress
             this.AddSceneButton.Enabled = true;
         }
 
+        protected void DisableAddCopyButton()
+        {
+            this.AddCopyButton.Enabled = false;
+        }
+
+        protected void EnableAddCopyButton()
+        {
+            this.AddCopyButton.Enabled = true;
+        }
+
+        protected void DisableExecuteCopyButton()
+        {
+            this.ExecuteCopyButton.Enabled = false;
+            this.DeleteCopyButton.Enabled = false;
+        }
+
+        protected void EnableExecuteCopyButton()
+        {
+            this.ExecuteCopyButton.Enabled = true;
+            this.DeleteCopyButton.Enabled = true;
+        }
+
         private void JobDirTextBox_TextChanged(object sender, EventArgs e)
         {
             string sendertext = sender.ToString();
@@ -167,22 +201,17 @@ namespace Ingress
 
             if (bDirExists)
             {
-                _jobDir = this.JobDirTextBox.Text;
-                _jobRoot = new DirectoryOrFile();
-                LoadDirTree(ref _jobRoot, _jobDir, null, DirectoryOrFile.DOF_Type.DIR);
-                EnableButtons();
+                //_jobDir = this.JobDirTextBox.Text;
+                //_jobRoot = new DirectoryOrFile();
+                //LoadDirTree(ref _jobRoot, _jobDir, null, DirectoryOrFile.DOF_Type.DIR);
+                //EnableButtons();
 
-                //TreeStore store = new TreeStore(typeof(string));
-                //this.DataTransfer_treeview.Model = store;
-                //TraverseDirTree(_jobRoot, 0, ref store, TreeIter.Zero);
-                //this.DataTransfer_treeview.ExpandAll();
+                //JobTreeView.Nodes.Clear();
+                //IngressTreeNode dummyRoot = new IngressTreeNode("dummy", null);
+                //TraverseDirTree(JobTreeView, _jobRoot, 0, ref dummyRoot);
 
-                JobTreeView.Nodes.Clear();
-                IngressTreeNode dummyRoot = new IngressTreeNode("dummy", null);
-                TraverseDirTree(JobTreeView, _jobRoot, 0, ref dummyRoot);
-
-                JobTreeView.ExpandAll();
-
+                //JobTreeView.ExpandAll();
+                UpdateTreeView();
             }
             else
                 DisableButtons();
@@ -213,14 +242,17 @@ namespace Ingress
 
         protected void UpdateTreeView()
         {
-            this.JobDirTextBox.Text = _jobDir;
-        }
+            _jobDir = this.JobDirTextBox.Text;
+            _jobRoot = new DirectoryOrFile();
+            LoadDirTree(ref _jobRoot, _jobDir, null, DirectoryOrFile.DOF_Type.DIR);
+            EnableButtons();
 
-        private void NumCamerasNumericUpDown_ValueChanged(object sender, EventArgs e)
-        {
-            _numCameras = (int)(NumCamerasNumericUpDown.Value);
-        }
+            JobTreeView.Nodes.Clear();
+            IngressTreeNode dummyRoot = new IngressTreeNode("dummy", null);
+            TraverseDirTree(JobTreeView, _jobRoot, 0, ref dummyRoot);
 
+            JobTreeView.ExpandAll();
+        }
 
         private void JobTreeView_NodeMouseDoubleClick(object sender, TreeNodeMouseClickEventArgs e)
         {
@@ -238,7 +270,7 @@ namespace Ingress
             }
         }
 
-        private static DialogResult ShowInputDialog(string title, ref string input)
+        public static DialogResult ShowInputDialog(string title, ref string input)
         {
             System.Drawing.Size size = new System.Drawing.Size(300, 70);
             Form inputBox = new Form();
@@ -290,6 +322,7 @@ namespace Ingress
             numBox.Size = new System.Drawing.Size(size.Width - 10, 23);
             numBox.Location = new System.Drawing.Point(5, 5);
             numBox.Value = input;
+            numBox.Select(0, numBox.Text.Length);
             inputBox.Controls.Add(numBox);
 
             Button okButton = new Button();
@@ -316,46 +349,67 @@ namespace Ingress
             return result;
         }
 
-        private static DialogResult ShowListDialog(string title, ref int selection, ListBox lb)
+        //private static DialogResult ShowListDialog(string title, ref int selection, ListBox lb)
+        //{
+        //    System.Drawing.Size size = new System.Drawing.Size(300, 200);
+        //    Form inputBox = new Form();
+        //    inputBox.Name = "ListDialog";
+
+        //    inputBox.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
+        //    inputBox.ClientSize = size;
+        //    inputBox.Text = title;
+
+        //    System.Windows.Forms.ListBox listBox = new ListBox();
+        //    //textBox.Size = new System.Drawing.Size(size.Width - 10, 23);
+        //    listBox.Location = new System.Drawing.Point(5, 5);
+        //    //textBox.Text = input;
+        //    for (int i = 0; i < lb.Items.Count; i++)
+        //        listBox.Items.Add(lb.Items[i]);
+        //    if (listBox.Items.Count > 0)
+        //        listBox.SelectedIndex = 0;
+
+        //    inputBox.Controls.Add(listBox);
+
+        //    Button addSceneButton = new Button();
+        //    //addSceneButton.DialogResult = System.Windows.Forms.DialogResult.OK;
+        //    addSceneButton.Name = "addSceneButton";
+        //    addSceneButton.Size = new System.Drawing.Size(75, 23);
+        //    addSceneButton.Text = "&+";
+        //    addSceneButton.Location = new System.Drawing.Point(size.Width - 80 - 80, 79);
+        //    addSceneButton.Click += new System.EventHandler(staticAddSceneButton_Click);
+        //    inputBox.Controls.Add(addSceneButton);
+
+        //    Button okButton = new Button();
+        //    okButton.DialogResult = System.Windows.Forms.DialogResult.OK;
+        //    okButton.Name = "okButton";
+        //    okButton.Size = new System.Drawing.Size(75, 23);
+        //    okButton.Text = "&OK";
+        //    okButton.Location = new System.Drawing.Point(size.Width - 80 - 80, 39);
+        //    inputBox.Controls.Add(okButton);
+
+        //    Button cancelButton = new Button();
+        //    cancelButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
+        //    cancelButton.Name = "cancelButton";
+        //    cancelButton.Size = new System.Drawing.Size(75, 23);
+        //    cancelButton.Text = "&Cancel";
+        //    cancelButton.Location = new System.Drawing.Point(size.Width - 80, 39);
+        //    inputBox.Controls.Add(cancelButton);
+
+        //    inputBox.AcceptButton = okButton;
+        //    inputBox.CancelButton = cancelButton;
+
+        //    DialogResult result = inputBox.ShowDialog();
+        //    selection = listBox.SelectedIndex;
+        //    return result;
+        //}
+
+        public void AddScene(string sceneName)
         {
-            System.Drawing.Size size = new System.Drawing.Size(300, 200);
-            Form inputBox = new Form();
-
-            inputBox.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
-            inputBox.ClientSize = size;
-            inputBox.Text = title;
-
-            System.Windows.Forms.ListBox listBox = new ListBox();
-            //textBox.Size = new System.Drawing.Size(size.Width - 10, 23);
-            listBox.Location = new System.Drawing.Point(5, 5);
-            //textBox.Text = input;
-            for (int i = 0; i < lb.Items.Count; i++)
-                listBox.Items.Add(lb.Items[i]);
-
-            inputBox.Controls.Add(listBox);
-
-            Button okButton = new Button();
-            okButton.DialogResult = System.Windows.Forms.DialogResult.OK;
-            okButton.Name = "okButton";
-            okButton.Size = new System.Drawing.Size(75, 23);
-            okButton.Text = "&OK";
-            okButton.Location = new System.Drawing.Point(size.Width - 80 - 80, 39);
-            inputBox.Controls.Add(okButton);
-
-            Button cancelButton = new Button();
-            cancelButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            cancelButton.Name = "cancelButton";
-            cancelButton.Size = new System.Drawing.Size(75, 23);
-            cancelButton.Text = "&Cancel";
-            cancelButton.Location = new System.Drawing.Point(size.Width - 80, 39);
-            inputBox.Controls.Add(cancelButton);
-
-            inputBox.AcceptButton = okButton;
-            inputBox.CancelButton = cancelButton;
-
-            DialogResult result = inputBox.ShowDialog();
-            selection = listBox.SelectedIndex;
-            return result;
+            if (!_scenes.Contains(sceneName))
+            {
+                _scenes.Add(sceneName);
+                this.SceneListBox.Items.Add(sceneName);
+            }
         }
 
         private void AddSceneButton_Click(object sender, EventArgs e)
@@ -363,27 +417,30 @@ namespace Ingress
             string input = "";
             if (ShowInputDialog("Enter Scene Name", ref input) == DialogResult.OK)
             {
-                if (!_scenes.Contains(input))
-                {
-                    _scenes.Add(input);
-                    this.SceneListBox.Items.Add(input);
-                }
+                AddScene(input);
+                //if (!_scenes.Contains(input))
+                //{
+                //    _scenes.Add(input);
+                //    this.SceneListBox.Items.Add(input);
+                //}
             }
         }
 
         private void SourceListBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-
+            int sel = SourceListBox.SelectedIndex;
+            DestListBox.SelectedIndex = sel;
         }
 
         private void DestListBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-
+            int sel = DestListBox.SelectedIndex;
+            SourceListBox.SelectedIndex = sel;
         }
 
         private void GetCameraButton_Click(object sender, EventArgs e)
         {
-            int camNum = 0;
+            int camNum = _currentCamera+1;
             if (ShowNumberDialog("Enter Camera Number", ref camNum) == DialogResult.OK)
             { 
                 _currentCamera = camNum;
@@ -414,6 +471,8 @@ namespace Ingress
                     SourceListBox.Items.Clear();
                     _destinationScenes = new List<string>();
                     DestListBox.Items.Clear();
+
+                    EnableAddCopyButton();
                 }
             }
         }
@@ -435,6 +494,15 @@ namespace Ingress
 
         }
 
+        private void ClearCopyList()
+        {
+            _sources.Clear();
+            SourceListBox.Items.Clear();
+            _destinationScenes.Clear();
+            DestListBox.Items.Clear();
+            DisableExecuteCopyButton();
+        }
+
         private void AddCopyButton_Click(object sender, EventArgs e)
         {
             if (_selectedCamNode == null)
@@ -447,11 +515,13 @@ namespace Ingress
                 SourceListBox.Items.Add(_selectedCamNode.DorF.Name());
 
                 int sel = -1;
-                if (ShowListDialog("Select Scene", ref sel, SceneListBox) == DialogResult.OK)
+                IngressListDialog dlg = new IngressListDialog(SceneListBox);
+                if (dlg.ShowListDialog("Select Scene", ref sel) == DialogResult.OK)
                 {
                     DestListBox.Items.Add(SceneListBox.Items[sel]);
                     _destinationScenes.Add(_scenes[sel]);
-                    Console.WriteLine("Would use scene \"" + sel);
+
+                    EnableExecuteCopyButton();
                 }
 
             }
@@ -469,6 +539,14 @@ namespace Ingress
             if (e.KeyData == Keys.Delete)
             {
                 Console.WriteLine("would delete " + SourceListBox.SelectedIndex);
+                int sel = SourceListBox.SelectedIndex;
+                SourceListBox.Items.RemoveAt(sel);
+                _sources.RemoveAt(sel);
+                DestListBox.Items.RemoveAt(sel);
+                _destinationScenes.RemoveAt(sel);
+
+                if (_sources.Count == 0)
+                    DisableExecuteCopyButton();
             }
         }
 
@@ -513,6 +591,7 @@ namespace Ingress
             }
 
             UpdateTreeView();
+            ClearCopyList();
         }
     }
 
@@ -562,6 +641,113 @@ namespace Ingress
         public DOF_Type Type() { return _dof_type; }
     };
 
+    public class IngressListDialog
+    {
+        private Form inputBox ;
+        System.Windows.Forms.ListBox listBox;
+        Button addSceneButton;
+        Button okButton;
+        Button cancelButton;
+        ListBox parentListBox;
+
+        private static IngressListDialog _instance = null;
+
+        public static IngressListDialog GetInstance()
+        {
+            return _instance;
+        }
+
+        public void updateListBox()
+        {
+            listBox.Items.Clear();
+            listBox.Location = new System.Drawing.Point(5, 5);
+            for (int i = 0; i < parentListBox.Items.Count; i++)
+                listBox.Items.Add(parentListBox.Items[i]);
+            if (listBox.Items.Count > 0)
+                listBox.SelectedIndex = 0;
+        }
+
+        public IngressListDialog(ListBox lb)
+        {
+            _instance = this;
+
+            System.Drawing.Size size = new System.Drawing.Size(300, 200);
+            //Form inputBox = new Form();
+            inputBox = new Form();
+            inputBox.Name = "ListDialog";
+
+            inputBox.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
+            inputBox.ClientSize = size;
+
+            parentListBox = lb;
+            listBox = new ListBox();
+            //textBox.Size = new System.Drawing.Size(size.Width - 10, 23);
+            listBox.Location = new System.Drawing.Point(5, 5);
+            //textBox.Text = input;
+            for (int i = 0; i < lb.Items.Count; i++)
+                listBox.Items.Add(lb.Items[i]);
+            if (listBox.Items.Count > 0)
+                listBox.SelectedIndex = 0;
+
+            inputBox.Controls.Add(listBox);
+
+            addSceneButton = new Button();
+            //addSceneButton.DialogResult = System.Windows.Forms.DialogResult.OK;
+            addSceneButton.Name = "addSceneButton";
+            addSceneButton.Size = new System.Drawing.Size(75, 23);
+            addSceneButton.Text = "&+";
+            addSceneButton.Location = new System.Drawing.Point(size.Width - 80 - 80, 79);
+            addSceneButton.Click += new System.EventHandler(staticAddSceneButton_Click);
+            inputBox.Controls.Add(addSceneButton);
+
+            okButton = new Button();
+            okButton.DialogResult = System.Windows.Forms.DialogResult.OK;
+            okButton.Name = "okButton";
+            okButton.Size = new System.Drawing.Size(75, 23);
+            okButton.Text = "&OK";
+            okButton.Location = new System.Drawing.Point(size.Width - 80 - 80, 39);
+            inputBox.Controls.Add(okButton);
+
+            cancelButton = new Button();
+            cancelButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
+            cancelButton.Name = "cancelButton";
+            cancelButton.Size = new System.Drawing.Size(75, 23);
+            cancelButton.Text = "&Cancel";
+            cancelButton.Location = new System.Drawing.Point(size.Width - 80, 39);
+            inputBox.Controls.Add(cancelButton);
+
+            inputBox.AcceptButton = okButton;
+            inputBox.CancelButton = cancelButton;
+
+        }
+
+        public DialogResult ShowListDialog(string title, ref int selection)
+        {
+            inputBox.Text = title;
+            DialogResult result = inputBox.ShowDialog();
+            selection = listBox.SelectedIndex;
+            return result;
+        }
+
+        private static void staticAddSceneButton_Click(object sender, EventArgs e)
+        {
+            string input = "";
+            if (IngressForm.ShowInputDialog("Enter Scene Name", ref input) == DialogResult.OK)
+            {
+                IngressForm.GetInstance().AddScene(input);
+                IngressListDialog.GetInstance().updateListBox();
+                //if (!_scenes.Contains(input))
+                //{
+                //    _scenes.Add(input);
+                //    sender.SceneListBox.Items.Add(input);
+                //}
+            }
+        }
+
+
+    }
+
+
     public class IngressTreeNode : TreeNode
     {
         public DirectoryOrFile DorF;
@@ -572,4 +758,5 @@ namespace Ingress
             this.Text = text;
         }
     }
+
 }
