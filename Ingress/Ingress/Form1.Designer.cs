@@ -45,6 +45,8 @@
             this.ExecuteCopyButton = new System.Windows.Forms.Button();
             this.CameraLabel = new System.Windows.Forms.Label();
             this.DeleteCopyButton = new System.Windows.Forms.Button();
+            this.CamNumListBox = new System.Windows.Forms.ListBox();
+            this.GuessAllButton = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // label1
@@ -173,7 +175,7 @@
             // SourceListBox
             // 
             this.SourceListBox.FormattingEnabled = true;
-            this.SourceListBox.Location = new System.Drawing.Point(270, 131);
+            this.SourceListBox.Location = new System.Drawing.Point(254, 132);
             this.SourceListBox.Margin = new System.Windows.Forms.Padding(2);
             this.SourceListBox.Name = "SourceListBox";
             this.SourceListBox.Size = new System.Drawing.Size(110, 277);
@@ -184,7 +186,7 @@
             // DestListBox
             // 
             this.DestListBox.FormattingEnabled = true;
-            this.DestListBox.Location = new System.Drawing.Point(381, 131);
+            this.DestListBox.Location = new System.Drawing.Point(395, 132);
             this.DestListBox.Margin = new System.Windows.Forms.Padding(2);
             this.DestListBox.Name = "DestListBox";
             this.DestListBox.Size = new System.Drawing.Size(99, 277);
@@ -224,11 +226,33 @@
             this.DeleteCopyButton.Text = "-";
             this.DeleteCopyButton.UseVisualStyleBackColor = true;
             // 
+            // CamNumListBox
+            // 
+            this.CamNumListBox.FormattingEnabled = true;
+            this.CamNumListBox.Location = new System.Drawing.Point(359, 132);
+            this.CamNumListBox.Name = "CamNumListBox";
+            this.CamNumListBox.Size = new System.Drawing.Size(38, 277);
+            this.CamNumListBox.TabIndex = 19;
+            this.CamNumListBox.SelectedIndexChanged += new System.EventHandler(this.CamNumListBox_SelectedIndexChanged);
+            // 
+            // GuessAllButton
+            // 
+            this.GuessAllButton.Enabled = false;
+            this.GuessAllButton.Location = new System.Drawing.Point(284, 462);
+            this.GuessAllButton.Name = "GuessAllButton";
+            this.GuessAllButton.Size = new System.Drawing.Size(181, 31);
+            this.GuessAllButton.TabIndex = 20;
+            this.GuessAllButton.Text = "Guess All";
+            this.GuessAllButton.UseVisualStyleBackColor = true;
+            this.GuessAllButton.Click += new System.EventHandler(this.GuessAllButton_Click);
+            // 
             // IngressForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(794, 502);
+            this.Controls.Add(this.GuessAllButton);
+            this.Controls.Add(this.CamNumListBox);
             this.Controls.Add(this.DeleteCopyButton);
             this.Controls.Add(this.CameraLabel);
             this.Controls.Add(this.ExecuteCopyButton);
@@ -273,6 +297,8 @@
         private System.Windows.Forms.Button ExecuteCopyButton;
         private System.Windows.Forms.Label CameraLabel;
         private System.Windows.Forms.Button DeleteCopyButton;
+        private System.Windows.Forms.ListBox CamNumListBox;
+        private System.Windows.Forms.Button GuessAllButton;
     }
 }
 
