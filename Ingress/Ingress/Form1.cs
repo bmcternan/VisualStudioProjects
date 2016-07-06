@@ -23,11 +23,20 @@ namespace Ingress
 
         private const string _invalidDirChars = "\\<>:\"/|?*\n\t";
 
+        private readonly string[] _knownMovieTypes = new string[] { ".mp4", ".mov", ".avi" };
+
         private DirectoryOrFile _camRoot;
         IngressTreeNode _selectedCamNode = null;
         private List<DirectoryOrFile> _sources;
         private List<string> _destinationScenes;
         private int _currentCamera = 0;
+        private List<int> _sourceCams;
+
+        private int _previousCamera = 0;
+        private DirectoryOrFile _previousCamRoot;
+        private List<DirectoryOrFile> _previousSources;
+        private List<string> _previousDestinationScenes;
+        private List<int> _previousSourceCams;
 
         private static IngressForm _instance = null;
 
@@ -173,12 +182,14 @@ namespace Ingress
         {
             this.ExecuteCopyButton.Enabled = false;
             this.DeleteCopyButton.Enabled = false;
+            this.GuessAllButton.Enabled = false;
         }
 
         protected void EnableExecuteCopyButton()
         {
             this.ExecuteCopyButton.Enabled = true;
             this.DeleteCopyButton.Enabled = true;
+            this.GuessAllButton.Enabled = true;
         }
 
         private void JobDirTextBox_TextChanged(object sender, EventArgs e)
@@ -349,66 +360,13 @@ namespace Ingress
             return result;
         }
 
-        //private static DialogResult ShowListDialog(string title, ref int selection, ListBox lb)
-        //{
-        //    System.Drawing.Size size = new System.Drawing.Size(300, 200);
-        //    Form inputBox = new Form();
-        //    inputBox.Name = "ListDialog";
-
-        //    inputBox.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
-        //    inputBox.ClientSize = size;
-        //    inputBox.Text = title;
-
-        //    System.Windows.Forms.ListBox listBox = new ListBox();
-        //    //textBox.Size = new System.Drawing.Size(size.Width - 10, 23);
-        //    listBox.Location = new System.Drawing.Point(5, 5);
-        //    //textBox.Text = input;
-        //    for (int i = 0; i < lb.Items.Count; i++)
-        //        listBox.Items.Add(lb.Items[i]);
-        //    if (listBox.Items.Count > 0)
-        //        listBox.SelectedIndex = 0;
-
-        //    inputBox.Controls.Add(listBox);
-
-        //    Button addSceneButton = new Button();
-        //    //addSceneButton.DialogResult = System.Windows.Forms.DialogResult.OK;
-        //    addSceneButton.Name = "addSceneButton";
-        //    addSceneButton.Size = new System.Drawing.Size(75, 23);
-        //    addSceneButton.Text = "&+";
-        //    addSceneButton.Location = new System.Drawing.Point(size.Width - 80 - 80, 79);
-        //    addSceneButton.Click += new System.EventHandler(staticAddSceneButton_Click);
-        //    inputBox.Controls.Add(addSceneButton);
-
-        //    Button okButton = new Button();
-        //    okButton.DialogResult = System.Windows.Forms.DialogResult.OK;
-        //    okButton.Name = "okButton";
-        //    okButton.Size = new System.Drawing.Size(75, 23);
-        //    okButton.Text = "&OK";
-        //    okButton.Location = new System.Drawing.Point(size.Width - 80 - 80, 39);
-        //    inputBox.Controls.Add(okButton);
-
-        //    Button cancelButton = new Button();
-        //    cancelButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-        //    cancelButton.Name = "cancelButton";
-        //    cancelButton.Size = new System.Drawing.Size(75, 23);
-        //    cancelButton.Text = "&Cancel";
-        //    cancelButton.Location = new System.Drawing.Point(size.Width - 80, 39);
-        //    inputBox.Controls.Add(cancelButton);
-
-        //    inputBox.AcceptButton = okButton;
-        //    inputBox.CancelButton = cancelButton;
-
-        //    DialogResult result = inputBox.ShowDialog();
-        //    selection = listBox.SelectedIndex;
-        //    return result;
-        //}
-
         public void AddScene(string sceneName)
         {
             if (!_scenes.Contains(sceneName))
             {
                 _scenes.Add(sceneName);
                 this.SceneListBox.Items.Add(sceneName);
+                this.SceneListBox.SelectedIndex = this.SceneListBox.Items.Count - 1;
             }
         }
 
@@ -430,12 +388,133 @@ namespace Ingress
         {
             int sel = SourceListBox.SelectedIndex;
             DestListBox.SelectedIndex = sel;
+            CamNumListBox.SelectedIndex = sel;
         }
 
         private void DestListBox_SelectedIndexChanged(object sender, EventArgs e)
         {
             int sel = DestListBox.SelectedIndex;
             SourceListBox.SelectedIndex = sel;
+            CamNumListBox.SelectedIndex = sel;
+        }
+
+        private void CamNumListBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            int sel = CamNumListBox.SelectedIndex;
+            SourceListBox.SelectedIndex = sel;
+            DestListBox.SelectedIndex = sel;
+        }
+
+        private void TraverseLoadMovieList (ref DirectoryOrFile _df, ref List<DirectoryOrFile> _list)
+        {
+            if (_df.Type() == DirectoryOrFile.DOF_Type.FILE)
+            {
+                // is this a movie?
+                int i = 0;
+                for (i = 0; i < _knownMovieTypes.Length; i++)
+                    if (Path.GetExtension(_df.Path()).ToLower().Contains(_knownMovieTypes[i]))
+                        break;
+                if (i < _knownMovieTypes.Length)
+                {
+                    // this is a movie
+                    _list.Add(_df);
+                }
+            }
+            else
+            {
+                for (int i = 0; i < _df.NumChildren(); i++)
+                {
+                    DirectoryOrFile childDf = _df.Child(i);
+                    TraverseLoadMovieList(ref childDf, ref _list);
+                }
+            }
+        }
+        private void MakeCopyGuess(int camNum)
+        {
+            if (_previousCamRoot == null)
+                return;
+
+            if (_previousSources == null)
+                return;
+
+            // start by aligning movie from cam directory with movies in copy list
+            List<DirectoryOrFile> moviesOnPrevCam = new List<DirectoryOrFile>();
+            TraverseLoadMovieList(ref _previousCamRoot, ref moviesOnPrevCam);
+
+            for (int i = 0; i < moviesOnPrevCam.Count; i++)
+            {
+                Console.WriteLine("Guess: " + i + " \"" + moviesOnPrevCam[i].Name() + "\"");
+            }
+
+            List<DirectoryOrFile> moviesOnThisCam = new List<DirectoryOrFile>();
+            TraverseLoadMovieList(ref _camRoot, ref moviesOnThisCam);
+
+            for (int i = 0; i < moviesOnThisCam.Count; i++)
+            {
+                Console.WriteLine("New: " + i + " \"" + moviesOnThisCam[i].Name() + "\"");
+            }
+
+            for (int i = 0; i < _previousSources.Count; i++)
+            {
+                int j = 0;
+                for (j = 0; j < moviesOnPrevCam.Count; j++)
+                {
+                    if (moviesOnPrevCam[j].Path() == _previousSources[i].Path())
+                    {
+                        // look for j'th movie on new movie list
+                        if (j < moviesOnThisCam.Count)
+                        {
+                            // found it
+                            _sources.Add(moviesOnThisCam[j]);
+                            SourceListBox.Items.Add(moviesOnThisCam[j].Name());
+                            _destinationScenes.Add(_previousDestinationScenes[i]);
+                            DestListBox.Items.Add(_previousDestinationScenes[i]);
+                            //_sourceCams.Add(_previousSourceCams[i]);
+                            //CamNumListBox.Items.Add(_previousSourceCams[i]);
+                            _sourceCams.Add(camNum);
+                            CamNumListBox.Items.Add(camNum);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        private void LoadCameraPath (string path, bool ClearLists, int camNum)
+        {
+            _previousCamRoot = _camRoot;
+            _previousCamera = camNum;
+
+            _camRoot = new DirectoryOrFile();
+            LoadDirTree(ref _camRoot, path, null, DirectoryOrFile.DOF_Type.DIR);
+
+            CameraTreeView.Nodes.Clear();
+            IngressTreeNode dummyRoot = new IngressTreeNode("dummy", null);
+            TraverseDirTree(CameraTreeView, _camRoot, 0, ref dummyRoot);
+
+            CameraTreeView.ExpandAll();
+
+            if (_sources != null)
+            {
+                //                        _previousSources = new List<DirectoryOrFile>();
+                _previousSources = _sources;
+                //                        _previousDestinationScenes = new List<string>();
+                _previousDestinationScenes = _destinationScenes;
+                _previousCamera = camNum;
+                _previousSourceCams = _sourceCams;
+            }
+
+            if(ClearLists)
+            {
+                _sources = new List<DirectoryOrFile>();
+                SourceListBox.Items.Clear();
+                _destinationScenes = new List<string>();
+                DestListBox.Items.Clear();
+                _sourceCams = new List<int>();
+                CamNumListBox.Items.Clear();
+            }
+
+            MakeCopyGuess(camNum);
         }
 
         private void GetCameraButton_Click(object sender, EventArgs e)
@@ -458,19 +537,37 @@ namespace Ingress
                 DialogResult result = fc.ShowDialog();
                 if (result == DialogResult.OK)
                 {
-                    _camRoot = new DirectoryOrFile();
-                    LoadDirTree(ref _camRoot, fc.SelectedPath, null, DirectoryOrFile.DOF_Type.DIR);
+                    LoadCameraPath(fc.SelectedPath, true, _currentCamera);
+//                    _previousCamRoot = _camRoot;
+//                    _previousCamera = _currentCamera;
 
-                    CameraTreeView.Nodes.Clear();
-                    IngressTreeNode dummyRoot = new IngressTreeNode("dummy", null);
-                    TraverseDirTree(CameraTreeView, _camRoot, 0, ref dummyRoot);
+//                    _camRoot = new DirectoryOrFile();
+//                    LoadDirTree(ref _camRoot, fc.SelectedPath, null, DirectoryOrFile.DOF_Type.DIR);
 
-                    CameraTreeView.ExpandAll();
+//                    _sourceCams = new List<int>();
 
-                    _sources = new List<DirectoryOrFile>();
-                    SourceListBox.Items.Clear();
-                    _destinationScenes = new List<string>();
-                    DestListBox.Items.Clear();
+//                    CameraTreeView.Nodes.Clear();
+//                    IngressTreeNode dummyRoot = new IngressTreeNode("dummy", null);
+//                    TraverseDirTree(CameraTreeView, _camRoot, 0, ref dummyRoot);
+
+//                    CameraTreeView.ExpandAll();
+
+//                    if (_sources != null)
+//                    {
+////                        _previousSources = new List<DirectoryOrFile>();
+//                        _previousSources = _sources;
+////                        _previousDestinationScenes = new List<string>();
+//                        _previousDestinationScenes = _destinationScenes;
+//                        _previousCamera = _currentCamera;
+//                    }
+
+//                    _sources = new List<DirectoryOrFile>();
+//                    SourceListBox.Items.Clear();
+//                    _destinationScenes = new List<string>();
+//                    DestListBox.Items.Clear();
+//                    CamNumListBox.Items.Clear();
+
+//                    MakeCopyGuess();
 
                     EnableAddCopyButton();
                 }
@@ -496,10 +593,18 @@ namespace Ingress
 
         private void ClearCopyList()
         {
+            _previousSources = _sources;
             _sources.Clear();
             SourceListBox.Items.Clear();
+
+            _previousDestinationScenes = _destinationScenes;
             _destinationScenes.Clear();
             DestListBox.Items.Clear();
+
+            _previousSourceCams = _sourceCams;
+            _sourceCams.Clear();
+            CamNumListBox.Items.Clear();
+
             DisableExecuteCopyButton();
         }
 
@@ -513,6 +618,8 @@ namespace Ingress
             {
                 _sources.Add(_selectedCamNode.DorF);
                 SourceListBox.Items.Add(_selectedCamNode.DorF.Name());
+                _sourceCams.Add(_currentCamera);
+                CamNumListBox.Items.Add(_currentCamera);
 
                 int sel = -1;
                 IngressListDialog dlg = new IngressListDialog(SceneListBox);
@@ -520,6 +627,7 @@ namespace Ingress
                 {
                     DestListBox.Items.Add(SceneListBox.Items[sel]);
                     _destinationScenes.Add(_scenes[sel]);
+                    DestListBox.SelectedIndex = SceneListBox.Items.Count-1;
 
                     EnableExecuteCopyButton();
                 }
@@ -544,20 +652,22 @@ namespace Ingress
                 _sources.RemoveAt(sel);
                 DestListBox.Items.RemoveAt(sel);
                 _destinationScenes.RemoveAt(sel);
+                CamNumListBox.Items.RemoveAt(sel);
+                _sourceCams.RemoveAt(sel);
 
                 if (_sources.Count == 0)
                     DisableExecuteCopyButton();
             }
         }
 
-        private void ExecuteCopyButton_Click(object sender, EventArgs e)
-        { 
-            string cam_name = string.Format("cam_{0:00}", _currentCamera);
+        private void DoCopyCamFiles ()
+        {
             for (int i = 0; i < _sources.Count; i++)
             {
                 if (_destinationScenes[i].Length > 0)
                 {
-                    string sceneDir = _jobDir + "\\" + _destinationScenes[i] + "\\" ;
+                    string cam_name = string.Format("cam_{0:00}", _sourceCams[i]);
+                    string sceneDir = _jobDir + "\\" + _destinationScenes[i] + "\\";
                     string cpCmd = string.Format("/c xcopy \"{0}\" \"{1}\" /i", _sources[i].Path(), sceneDir);
                     string destName = sceneDir + Path.GetFileName(_sources[i].Path());
                     string mvCmd = string.Format("/c rename \"{0}\" \"{1}{2}\"", destName, cam_name, Path.GetExtension(_sources[i].Path()));
@@ -565,7 +675,7 @@ namespace Ingress
                     {
                         System.Diagnostics.Process cpProcess = new System.Diagnostics.Process();
                         cpProcess.StartInfo.UseShellExecute = false;
-                        cpProcess.StartInfo.Arguments = cpCmd ;
+                        cpProcess.StartInfo.Arguments = cpCmd;
                         cpProcess.StartInfo.FileName = "cmd.exe";
                         cpProcess.Start();
                         cpProcess.WaitForExit();
@@ -589,9 +699,101 @@ namespace Ingress
                     }
                 }
             }
+        }
+
+        private void ExecuteCopyButton_Click(object sender, EventArgs e)
+        {
+            DoCopyCamFiles();
+            //string cam_name = string.Format("cam_{0:00}", _currentCamera);
+            //for (int i = 0; i < _sources.Count; i++)
+            //{
+            //    if (_destinationScenes[i].Length > 0)
+            //    {
+            //        string sceneDir = _jobDir + "\\" + _destinationScenes[i] + "\\" ;
+            //        string cpCmd = string.Format("/c xcopy \"{0}\" \"{1}\" /i", _sources[i].Path(), sceneDir);
+            //        string destName = sceneDir + Path.GetFileName(_sources[i].Path());
+            //        string mvCmd = string.Format("/c rename \"{0}\" \"{1}{2}\"", destName, cam_name, Path.GetExtension(_sources[i].Path()));
+            //        try
+            //        {
+            //            System.Diagnostics.Process cpProcess = new System.Diagnostics.Process();
+            //            cpProcess.StartInfo.UseShellExecute = false;
+            //            cpProcess.StartInfo.Arguments = cpCmd ;
+            //            cpProcess.StartInfo.FileName = "cmd.exe";
+            //            cpProcess.Start();
+            //            cpProcess.WaitForExit();
+            //            cpProcess.Dispose();
+            //            cpProcess.Close();
+
+            //            System.Diagnostics.Process mvProcess = new System.Diagnostics.Process();
+            //            mvProcess.StartInfo.UseShellExecute = false;
+            //            mvProcess.StartInfo.Arguments = mvCmd;
+            //            mvProcess.StartInfo.FileName = "cmd.exe";
+            //            mvProcess.Start();
+            //            mvProcess.WaitForExit();
+            //            mvProcess.Dispose();
+            //            mvProcess.Close();
+            //        }
+            //        // If the file is not found, handle the exception and inform the user.
+            //        catch (System.ComponentModel.Win32Exception err)
+            //        {
+            //            Console.WriteLine(cpCmd);
+            //            MessageBox.Show("\"" + cpCmd + "\" " + err.Message);
+            //        }
+            //    }
+            //}
 
             UpdateTreeView();
             ClearCopyList();
+        }
+
+        private void GuessAllButton_Click(object sender, EventArgs e)
+        {
+            // build list of all directories with name that follows first
+            DirectoryInfo dirInfo = Directory.GetParent(_camRoot.Path());
+            string parentDir = dirInfo.FullName;
+            
+            string dirName = Path.GetFileName(_camRoot.Path());
+
+            Console.WriteLine("_camRoot \"" + _camRoot.Path() + "\" parentDir \"" + parentDir + "\" local dir \"" + dirName + "\"");
+
+            int i = 0;
+            for (i = dirName.Length -1; i > 0; i--)
+            {
+                if ((dirName[i] < '0') || (dirName[i] > '9'))
+                    break;
+            }
+            if (i > 0)
+            {
+                string baseName = dirName.Substring(0, i+1);
+                int numZeros = dirName.Length - baseName.Length;
+
+                string format = string.Format("{0}\\{1}{{0:", parentDir, baseName);
+                for (int j = 0; j < numZeros; j++)
+                    format = format + "0";
+                format = format + "}";
+
+                string camPath;
+                int camCount = 0;
+                do
+                {
+                    camCount++;
+                    camPath = string.Format(format, camCount);
+                    Console.WriteLine("Looking for \"" + camPath + "\"");
+                } while (Directory.Exists(camPath));
+                camCount--;
+
+                Console.WriteLine("Num of cam dirs = " + camCount);
+
+                int startingCam = _currentCamera + 1;
+                for (int camIndex = startingCam; camIndex < (camCount+1); camIndex++)
+                {
+                    _currentCamera = camIndex;
+                    // 
+                    camPath = string.Format(format, camIndex);
+                    LoadCameraPath(camPath, false, camIndex);
+                }
+            }
+
         }
     }
 
@@ -736,6 +938,8 @@ namespace Ingress
             {
                 IngressForm.GetInstance().AddScene(input);
                 IngressListDialog.GetInstance().updateListBox();
+                IngressListDialog.GetInstance().listBox.SelectedIndex = IngressListDialog.GetInstance().listBox.Items.Count - 1;
+
                 //if (!_scenes.Contains(input))
                 //{
                 //    _scenes.Add(input);
