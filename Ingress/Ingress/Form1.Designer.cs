@@ -47,6 +47,15 @@
             this.DeleteCopyButton = new System.Windows.Forms.Button();
             this.CamNumListBox = new System.Windows.Forms.ListBox();
             this.GuessAllButton = new System.Windows.Forms.Button();
+            this.GuessType_radioButton1 = new System.Windows.Forms.RadioButton();
+            this.GuessType_radioButton2 = new System.Windows.Forms.RadioButton();
+            this.CameraFileSort_radioButton1 = new System.Windows.Forms.RadioButton();
+            this.CameraFileSort_radioButton2 = new System.Windows.Forms.RadioButton();
+            this.CameraFileSort_radioButton3 = new System.Windows.Forms.RadioButton();
+            this.CameraFilesSort_groupBox = new System.Windows.Forms.GroupBox();
+            this.GuessType_groupBox = new System.Windows.Forms.GroupBox();
+            this.CameraFilesSort_groupBox.SuspendLayout();
+            this.GuessType_groupBox.SuspendLayout();
             this.SuspendLayout();
             // 
             // label1
@@ -178,9 +187,10 @@
             this.SourceListBox.Location = new System.Drawing.Point(254, 132);
             this.SourceListBox.Margin = new System.Windows.Forms.Padding(2);
             this.SourceListBox.Name = "SourceListBox";
-            this.SourceListBox.Size = new System.Drawing.Size(110, 277);
+            this.SourceListBox.Size = new System.Drawing.Size(108, 277);
             this.SourceListBox.TabIndex = 14;
             this.SourceListBox.SelectedIndexChanged += new System.EventHandler(this.SourceListBox_SelectedIndexChanged);
+            this.SourceListBox.DoubleClick += new System.EventHandler(this.SourceListBox_DoubleClick);
             this.SourceListBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.SourceListBox_KeyDown);
             // 
             // DestListBox
@@ -238,7 +248,7 @@
             // GuessAllButton
             // 
             this.GuessAllButton.Enabled = false;
-            this.GuessAllButton.Location = new System.Drawing.Point(284, 462);
+            this.GuessAllButton.Location = new System.Drawing.Point(285, 477);
             this.GuessAllButton.Name = "GuessAllButton";
             this.GuessAllButton.Size = new System.Drawing.Size(181, 31);
             this.GuessAllButton.TabIndex = 20;
@@ -246,11 +256,93 @@
             this.GuessAllButton.UseVisualStyleBackColor = true;
             this.GuessAllButton.Click += new System.EventHandler(this.GuessAllButton_Click);
             // 
+            // GuessType_radioButton1
+            // 
+            this.GuessType_radioButton1.AutoSize = true;
+            this.GuessType_radioButton1.Checked = true;
+            this.GuessType_radioButton1.Location = new System.Drawing.Point(12, 3);
+            this.GuessType_radioButton1.Name = "GuessType_radioButton1";
+            this.GuessType_radioButton1.Size = new System.Drawing.Size(124, 17);
+            this.GuessType_radioButton1.TabIndex = 21;
+            this.GuessType_radioButton1.TabStop = true;
+            this.GuessType_radioButton1.Text = "Guess By Time/Date";
+            this.GuessType_radioButton1.UseVisualStyleBackColor = true;
+            this.GuessType_radioButton1.CheckedChanged += new System.EventHandler(this.GuessType_radioButton1_CheckedChanged);
+            // 
+            // GuessType_radioButton2
+            // 
+            this.GuessType_radioButton2.AutoSize = true;
+            this.GuessType_radioButton2.Location = new System.Drawing.Point(142, 3);
+            this.GuessType_radioButton2.Name = "GuessType_radioButton2";
+            this.GuessType_radioButton2.Size = new System.Drawing.Size(121, 17);
+            this.GuessType_radioButton2.TabIndex = 22;
+            this.GuessType_radioButton2.Text = "Guess By Sort Order";
+            this.GuessType_radioButton2.UseVisualStyleBackColor = true;
+            this.GuessType_radioButton2.CheckedChanged += new System.EventHandler(this.GuessType_radioButton2_CheckedChanged);
+            // 
+            // CameraFileSort_radioButton1
+            // 
+            this.CameraFileSort_radioButton1.AutoSize = true;
+            this.CameraFileSort_radioButton1.Checked = true;
+            this.CameraFileSort_radioButton1.Location = new System.Drawing.Point(5, 11);
+            this.CameraFileSort_radioButton1.Name = "CameraFileSort_radioButton1";
+            this.CameraFileSort_radioButton1.Size = new System.Drawing.Size(53, 17);
+            this.CameraFileSort_radioButton1.TabIndex = 23;
+            this.CameraFileSort_radioButton1.TabStop = true;
+            this.CameraFileSort_radioButton1.Text = "Name";
+            this.CameraFileSort_radioButton1.UseVisualStyleBackColor = true;
+            this.CameraFileSort_radioButton1.CheckedChanged += new System.EventHandler(this.CameraFileSort_radioButton1_CheckedChanged);
+            // 
+            // CameraFileSort_radioButton2
+            // 
+            this.CameraFileSort_radioButton2.AutoSize = true;
+            this.CameraFileSort_radioButton2.Location = new System.Drawing.Point(64, 11);
+            this.CameraFileSort_radioButton2.Name = "CameraFileSort_radioButton2";
+            this.CameraFileSort_radioButton2.Size = new System.Drawing.Size(49, 17);
+            this.CameraFileSort_radioButton2.TabIndex = 24;
+            this.CameraFileSort_radioButton2.Text = "Type";
+            this.CameraFileSort_radioButton2.UseVisualStyleBackColor = true;
+            this.CameraFileSort_radioButton2.CheckedChanged += new System.EventHandler(this.CameraFileSort_radioButton2_CheckedChanged);
+            // 
+            // CameraFileSort_radioButton3
+            // 
+            this.CameraFileSort_radioButton3.AutoSize = true;
+            this.CameraFileSort_radioButton3.Location = new System.Drawing.Point(113, 11);
+            this.CameraFileSort_radioButton3.Name = "CameraFileSort_radioButton3";
+            this.CameraFileSort_radioButton3.Size = new System.Drawing.Size(48, 17);
+            this.CameraFileSort_radioButton3.TabIndex = 25;
+            this.CameraFileSort_radioButton3.Text = "Date";
+            this.CameraFileSort_radioButton3.UseVisualStyleBackColor = true;
+            this.CameraFileSort_radioButton3.CheckedChanged += new System.EventHandler(this.CameraFileSort_radioButton3_CheckedChanged);
+            // 
+            // CameraFilesSort_groupBox
+            // 
+            this.CameraFilesSort_groupBox.Controls.Add(this.CameraFileSort_radioButton3);
+            this.CameraFilesSort_groupBox.Controls.Add(this.CameraFileSort_radioButton2);
+            this.CameraFilesSort_groupBox.Controls.Add(this.CameraFileSort_radioButton1);
+            this.CameraFilesSort_groupBox.Location = new System.Drawing.Point(80, 92);
+            this.CameraFilesSort_groupBox.Name = "CameraFilesSort_groupBox";
+            this.CameraFilesSort_groupBox.Size = new System.Drawing.Size(174, 33);
+            this.CameraFilesSort_groupBox.TabIndex = 26;
+            this.CameraFilesSort_groupBox.TabStop = false;
+            // 
+            // GuessType_groupBox
+            // 
+            this.GuessType_groupBox.Controls.Add(this.GuessType_radioButton2);
+            this.GuessType_groupBox.Controls.Add(this.GuessType_radioButton1);
+            this.GuessType_groupBox.Location = new System.Drawing.Point(254, 457);
+            this.GuessType_groupBox.Name = "GuessType_groupBox";
+            this.GuessType_groupBox.Size = new System.Drawing.Size(266, 21);
+            this.GuessType_groupBox.TabIndex = 27;
+            this.GuessType_groupBox.TabStop = false;
+            // 
             // IngressForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(794, 502);
+            this.ClientSize = new System.Drawing.Size(794, 533);
+            this.Controls.Add(this.GuessType_groupBox);
+            this.Controls.Add(this.CameraFilesSort_groupBox);
             this.Controls.Add(this.GuessAllButton);
             this.Controls.Add(this.CamNumListBox);
             this.Controls.Add(this.DeleteCopyButton);
@@ -273,6 +365,10 @@
             this.Margin = new System.Windows.Forms.Padding(2);
             this.Name = "IngressForm";
             this.Text = "360 Video Ingress";
+            this.CameraFilesSort_groupBox.ResumeLayout(false);
+            this.CameraFilesSort_groupBox.PerformLayout();
+            this.GuessType_groupBox.ResumeLayout(false);
+            this.GuessType_groupBox.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -299,6 +395,13 @@
         private System.Windows.Forms.Button DeleteCopyButton;
         private System.Windows.Forms.ListBox CamNumListBox;
         private System.Windows.Forms.Button GuessAllButton;
+        private System.Windows.Forms.RadioButton GuessType_radioButton1;
+        private System.Windows.Forms.RadioButton GuessType_radioButton2;
+        private System.Windows.Forms.RadioButton CameraFileSort_radioButton1;
+        private System.Windows.Forms.RadioButton CameraFileSort_radioButton2;
+        private System.Windows.Forms.RadioButton CameraFileSort_radioButton3;
+        private System.Windows.Forms.GroupBox CameraFilesSort_groupBox;
+        private System.Windows.Forms.GroupBox GuessType_groupBox;
     }
 }
 
