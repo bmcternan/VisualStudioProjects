@@ -40,6 +40,12 @@ namespace Ingress
 
         private static IngressForm _instance = null;
 
+        public enum tSortType { NOT_SELECTED, SORT_BY_NAME, SORT_BY_TYPE, SORT_BY_DATE };
+        private tSortType _cameraFileSortType = tSortType.SORT_BY_NAME;
+
+        private enum tGuessType { NOT_SELECTED, GUESS_BY_DATE, GUESS_BY_ORDER };
+        private tGuessType _guessType = tGuessType.GUESS_BY_DATE;
+
         public static IngressForm GetInstance()
         {
             return _instance;
@@ -58,6 +64,8 @@ namespace Ingress
                 _bTreeViewInited = true;
             }
             _scenes = new List<string>();
+            SourceListBox.DisplayMember = "DisplayName";
+            SourceListBox.ValueMember = "Identifier";
         }
 
         //protected void TraverseDirTree(DirectoryOrFile node, int level, ref TreeStore store, TreeIter iter)
@@ -70,9 +78,9 @@ namespace Ingress
             else
                 tree_node.Nodes.Add(thisNodeIter); // store.AppendValues(iter, node.Name());
 
-            for (int i = 0; i < level; i++)
-                Console.Write("   ");
-            Console.WriteLine("{0} = {1} ({2})", node.Name(), node.Path(), node.Type() == DirectoryOrFile.DOF_Type.DIR ? "D" : (node.Type() == DirectoryOrFile.DOF_Type.FILE ? "F" : "U"));
+            //for (int i = 0; i < level; i++)
+            //    Console.Write("   ");
+            //Console.WriteLine("{0} = {1} ({2})", node.Name(), node.Path(), node.Type() == DirectoryOrFile.DOF_Type.DIR ? "D" : (node.Type() == DirectoryOrFile.DOF_Type.FILE ? "F" : "U"));
 
             for (int i = 0; i < node.NumChildren(); i++)
             {
@@ -80,7 +88,6 @@ namespace Ingress
                 TraverseDirTree(tv, node.Child(i), level + 1, ref thisNodeIter);
             }
         }
-
 
 
         protected void LoadDirTree(ref DirectoryOrFile node, string path, DirectoryOrFile parent, DirectoryOrFile.DOF_Type dofType)
@@ -101,7 +108,7 @@ namespace Ingress
                     foreach (var dir in dirList)
                     {
                         string newDirName = dir.Substring(dir.LastIndexOf("\\") + 1);
-                        Console.WriteLine("{0}", dir.Substring(dir.LastIndexOf("\\") + 1));
+                        //Console.WriteLine("{0}", dir.Substring(dir.LastIndexOf("\\") + 1));
 
                         DirectoryOrFile sub = new DirectoryOrFile();
                         LoadDirTree(ref sub, dir, node, DirectoryOrFile.DOF_Type.DIR);
@@ -136,7 +143,7 @@ namespace Ingress
                     foreach (var fname in fileList)
                     {
                         string foo = fname.Substring(fname.LastIndexOf("\\") + 1);
-                        Console.WriteLine("{0}", fname.Substring(fname.LastIndexOf("\\") + 1));
+                        // Console.WriteLine("{0}", fname.Substring(fname.LastIndexOf("\\") + 1));
                         DirectoryOrFile sub = new DirectoryOrFile();
                         LoadDirTree(ref sub, fname, node, DirectoryOrFile.DOF_Type.FILE);
 
@@ -212,16 +219,6 @@ namespace Ingress
 
             if (bDirExists)
             {
-                //_jobDir = this.JobDirTextBox.Text;
-                //_jobRoot = new DirectoryOrFile();
-                //LoadDirTree(ref _jobRoot, _jobDir, null, DirectoryOrFile.DOF_Type.DIR);
-                //EnableButtons();
-
-                //JobTreeView.Nodes.Clear();
-                //IngressTreeNode dummyRoot = new IngressTreeNode("dummy", null);
-                //TraverseDirTree(JobTreeView, _jobRoot, 0, ref dummyRoot);
-
-                //JobTreeView.ExpandAll();
                 UpdateTreeView();
             }
             else
@@ -429,7 +426,8 @@ namespace Ingress
                 }
             }
         }
-        private void MakeCopyGuess(int camNum)
+
+        private void MakeCopyGuessBySortOrder(int camNum)
         {
             if (_previousCamRoot == null)
                 return;
@@ -439,6 +437,7 @@ namespace Ingress
 
             // start by aligning movie from cam directory with movies in copy list
             List<DirectoryOrFile> moviesOnPrevCam = new List<DirectoryOrFile>();
+            _previousCamRoot.SortBy(_cameraFileSortType);
             TraverseLoadMovieList(ref _previousCamRoot, ref moviesOnPrevCam);
 
             for (int i = 0; i < moviesOnPrevCam.Count; i++)
@@ -447,6 +446,7 @@ namespace Ingress
             }
 
             List<DirectoryOrFile> moviesOnThisCam = new List<DirectoryOrFile>();
+            _camRoot.SortBy(_cameraFileSortType);
             TraverseLoadMovieList(ref _camRoot, ref moviesOnThisCam);
 
             for (int i = 0; i < moviesOnThisCam.Count; i++)
@@ -454,6 +454,10 @@ namespace Ingress
                 Console.WriteLine("New: " + i + " \"" + moviesOnThisCam[i].Name() + "\"");
             }
 
+            // _previoiusSources is list of movies selected for copy
+            // moviesOnPrevCam is sorted list of movies from prev camera directory
+            // moviesOnThisCam is sorted list of movies on camera directory being querried
+            // - Find selected movie in moviesOnPrevCam and select corresponding movie from moviesOnThisCam
             for (int i = 0; i < _previousSources.Count; i++)
             {
                 int j = 0;
@@ -466,7 +470,10 @@ namespace Ingress
                         {
                             // found it
                             _sources.Add(moviesOnThisCam[j]);
-                            SourceListBox.Items.Add(moviesOnThisCam[j].Name());
+                            IngressListBoxItem ib = new IngressListBoxItem();
+                            ib.DisplayName = moviesOnThisCam[j].Name() ;
+                            ib.Identifier = moviesOnThisCam[j];
+                            SourceListBox.Items.Add(ib);
                             _destinationScenes.Add(_previousDestinationScenes[i]);
                             DestListBox.Items.Add(_previousDestinationScenes[i]);
                             //_sourceCams.Add(_previousSourceCams[i]);
@@ -480,7 +487,81 @@ namespace Ingress
             }
         }
 
-        private void LoadCameraPath (string path, bool ClearLists, int camNum)
+        private void MakeCopyGuessByDate(int camNum, int numMovieFilesToGuess)
+        {
+            if (_previousCamRoot == null)
+                return;
+
+            if (_previousSources == null)
+                return;
+
+            // start by aligning movie from cam directory with movies in copy list by Date
+
+            tSortType tempSortType = _cameraFileSortType ;
+            _cameraFileSortType = tSortType.SORT_BY_DATE;
+
+            List<DirectoryOrFile> moviesOnPrevCam = new List<DirectoryOrFile>();
+            _previousCamRoot.SortBy(_cameraFileSortType);
+            TraverseLoadMovieList(ref _previousCamRoot, ref moviesOnPrevCam);
+
+            for (int i = 0; i < moviesOnPrevCam.Count; i++)
+            {
+                Console.WriteLine("Guess: " + i + " \"" + moviesOnPrevCam[i].Name() + "\" " + File.GetLastWriteTime(moviesOnPrevCam[i].Path()).ToString());
+            }
+
+            List<DirectoryOrFile> moviesOnThisCam = new List<DirectoryOrFile>();
+            _camRoot.SortBy(_cameraFileSortType);
+            TraverseLoadMovieList(ref _camRoot, ref moviesOnThisCam);
+
+            _cameraFileSortType = tempSortType;
+
+            for (int i = 0; i < moviesOnThisCam.Count; i++)
+            {
+                Console.WriteLine("New: " + i + " \"" + moviesOnThisCam[i].Name() + "\" " + File.GetLastWriteTime(moviesOnThisCam[i].Path()).ToString());
+            }
+
+            // _previoiusSources is list of movies selected for copy
+            // moviesOnThisCam is sorted list of movies on camera directory being querried
+            // - Find selected movie timestamp and select closest movie from moviesOnThisCam
+            for (int i = 0; i < numMovieFilesToGuess; i++)
+            {
+                int closestDateMatch = -1;
+                DateTime sourceDT = File.GetLastWriteTime(_previousSources[i].Path());
+                long minDelta = 0;
+
+                int j = 0;
+                for (j = 0; j < moviesOnThisCam.Count; j++)
+                {
+                    DateTime thisDT = File.GetLastWriteTime(moviesOnThisCam[j].Path());
+                    long delta = Math.Abs(thisDT.Ticks - sourceDT.Ticks);
+
+                    if (j == 0)
+                    {
+                        closestDateMatch = j;
+                        minDelta = delta;
+                    }
+                    else if (delta < minDelta)
+                    {
+                        closestDateMatch = j;
+                        minDelta = delta;
+                    }
+                }
+
+                j = closestDateMatch;
+                // found it
+                _sources.Add(moviesOnThisCam[j]);
+                IngressListBoxItem ib = new IngressListBoxItem();
+                ib.DisplayName = moviesOnThisCam[j].Name();
+                ib.Identifier = moviesOnThisCam[j];
+                SourceListBox.Items.Add(ib);
+                _destinationScenes.Add(_previousDestinationScenes[i]);
+                DestListBox.Items.Add(_previousDestinationScenes[i]);
+                _sourceCams.Add(camNum);
+                CamNumListBox.Items.Add(camNum);
+            }
+        }
+
+        private void LoadCameraPath (string path, bool ClearLists, int camNum, bool doGuess, int numMovieFilesToGuess)
         {
             _previousCamRoot = _camRoot;
             _previousCamera = camNum;
@@ -514,7 +595,14 @@ namespace Ingress
                 CamNumListBox.Items.Clear();
             }
 
-            MakeCopyGuess(camNum);
+            if(doGuess)
+            {
+                if(_guessType == tGuessType.GUESS_BY_ORDER)
+                    MakeCopyGuessBySortOrder(camNum);
+                else if (_guessType == tGuessType.GUESS_BY_DATE)
+                    MakeCopyGuessByDate(camNum, numMovieFilesToGuess);
+            }
+
         }
 
         private void GetCameraButton_Click(object sender, EventArgs e)
@@ -537,39 +625,8 @@ namespace Ingress
                 DialogResult result = fc.ShowDialog();
                 if (result == DialogResult.OK)
                 {
-                    LoadCameraPath(fc.SelectedPath, true, _currentCamera);
-//                    _previousCamRoot = _camRoot;
-//                    _previousCamera = _currentCamera;
-
-//                    _camRoot = new DirectoryOrFile();
-//                    LoadDirTree(ref _camRoot, fc.SelectedPath, null, DirectoryOrFile.DOF_Type.DIR);
-
-//                    _sourceCams = new List<int>();
-
-//                    CameraTreeView.Nodes.Clear();
-//                    IngressTreeNode dummyRoot = new IngressTreeNode("dummy", null);
-//                    TraverseDirTree(CameraTreeView, _camRoot, 0, ref dummyRoot);
-
-//                    CameraTreeView.ExpandAll();
-
-//                    if (_sources != null)
-//                    {
-////                        _previousSources = new List<DirectoryOrFile>();
-//                        _previousSources = _sources;
-////                        _previousDestinationScenes = new List<string>();
-//                        _previousDestinationScenes = _destinationScenes;
-//                        _previousCamera = _currentCamera;
-//                    }
-
-//                    _sources = new List<DirectoryOrFile>();
-//                    SourceListBox.Items.Clear();
-//                    _destinationScenes = new List<string>();
-//                    DestListBox.Items.Clear();
-//                    CamNumListBox.Items.Clear();
-
-//                    MakeCopyGuess();
-
-                    EnableAddCopyButton();
+                    LoadCameraPath(fc.SelectedPath, true, _currentCamera, false, 0);
+                    ResortCameraFileList();
                 }
             }
         }
@@ -617,7 +674,12 @@ namespace Ingress
             if (!_sources.Contains(_selectedCamNode.DorF))
             {
                 _sources.Add(_selectedCamNode.DorF);
-                SourceListBox.Items.Add(_selectedCamNode.DorF.Name());
+                IngressListBoxItem ib = new IngressListBoxItem();
+                ib.DisplayName = _selectedCamNode.DorF.Name();
+                ib.Identifier = _selectedCamNode.DorF;
+
+                //SourceListBox.Items.Add(_selectedCamNode.DorF.Name());
+                SourceListBox.Items.Add(ib);
                 _sourceCams.Add(_currentCamera);
                 CamNumListBox.Items.Add(_currentCamera);
 
@@ -627,7 +689,8 @@ namespace Ingress
                 {
                     DestListBox.Items.Add(SceneListBox.Items[sel]);
                     _destinationScenes.Add(_scenes[sel]);
-                    DestListBox.SelectedIndex = SceneListBox.Items.Count-1;
+                    //DestListBox.SelectedIndex = SceneListBox.Items.Count - 1;
+                    DestListBox.SelectedIndex = DestListBox.Items.Count - 1;
 
                     EnableExecuteCopyButton();
                 }
@@ -638,7 +701,7 @@ namespace Ingress
         private void CameraTreeView_AfterSelect(object sender, TreeViewEventArgs e)
         {
             _selectedCamNode = (IngressTreeNode)(e.Node);
-
+            EnableAddCopyButton();
         }
 
         private void SourceListBox_KeyDown(object sender, KeyEventArgs e)
@@ -704,43 +767,6 @@ namespace Ingress
         private void ExecuteCopyButton_Click(object sender, EventArgs e)
         {
             DoCopyCamFiles();
-            //string cam_name = string.Format("cam_{0:00}", _currentCamera);
-            //for (int i = 0; i < _sources.Count; i++)
-            //{
-            //    if (_destinationScenes[i].Length > 0)
-            //    {
-            //        string sceneDir = _jobDir + "\\" + _destinationScenes[i] + "\\" ;
-            //        string cpCmd = string.Format("/c xcopy \"{0}\" \"{1}\" /i", _sources[i].Path(), sceneDir);
-            //        string destName = sceneDir + Path.GetFileName(_sources[i].Path());
-            //        string mvCmd = string.Format("/c rename \"{0}\" \"{1}{2}\"", destName, cam_name, Path.GetExtension(_sources[i].Path()));
-            //        try
-            //        {
-            //            System.Diagnostics.Process cpProcess = new System.Diagnostics.Process();
-            //            cpProcess.StartInfo.UseShellExecute = false;
-            //            cpProcess.StartInfo.Arguments = cpCmd ;
-            //            cpProcess.StartInfo.FileName = "cmd.exe";
-            //            cpProcess.Start();
-            //            cpProcess.WaitForExit();
-            //            cpProcess.Dispose();
-            //            cpProcess.Close();
-
-            //            System.Diagnostics.Process mvProcess = new System.Diagnostics.Process();
-            //            mvProcess.StartInfo.UseShellExecute = false;
-            //            mvProcess.StartInfo.Arguments = mvCmd;
-            //            mvProcess.StartInfo.FileName = "cmd.exe";
-            //            mvProcess.Start();
-            //            mvProcess.WaitForExit();
-            //            mvProcess.Dispose();
-            //            mvProcess.Close();
-            //        }
-            //        // If the file is not found, handle the exception and inform the user.
-            //        catch (System.ComponentModel.Win32Exception err)
-            //        {
-            //            Console.WriteLine(cpCmd);
-            //            MessageBox.Show("\"" + cpCmd + "\" " + err.Message);
-            //        }
-            //    }
-            //}
 
             UpdateTreeView();
             ClearCopyList();
@@ -755,6 +781,8 @@ namespace Ingress
             string dirName = Path.GetFileName(_camRoot.Path());
 
             Console.WriteLine("_camRoot \"" + _camRoot.Path() + "\" parentDir \"" + parentDir + "\" local dir \"" + dirName + "\"");
+
+            int numMovieFilesToGuess = _sources.Count;
 
             int i = 0;
             for (i = dirName.Length -1; i > 0; i--)
@@ -790,14 +818,68 @@ namespace Ingress
                     _currentCamera = camIndex;
                     // 
                     camPath = string.Format(format, camIndex);
-                    LoadCameraPath(camPath, false, camIndex);
+                    LoadCameraPath(camPath, false, camIndex, true, numMovieFilesToGuess); // true = do guess!
                 }
             }
 
         }
+
+        private void SourceListBox_DoubleClick(object sender, EventArgs e)
+        {
+            IngressListBoxItem ie = (IngressListBoxItem)(SourceListBox.Items[SourceListBox.SelectedIndex]);
+            try
+            {
+                // Look for a file extension.
+                if (ie.Identifier.Path().Contains("."))
+                    System.Diagnostics.Process.Start(ie.Identifier.Path());
+            }
+            // If the file is not found, handle the exception and inform the user.
+            catch (System.ComponentModel.Win32Exception)
+            {
+                MessageBox.Show("\"" + ie.Identifier.Path() + "\" File not found.");
+            }
+        }
+
+        private void ResortCameraFileList()
+        {
+            _camRoot.SortBy(_cameraFileSortType);
+            CameraTreeView.Nodes.Clear();
+            IngressTreeNode dummyRoot = new IngressTreeNode("dummy", null);
+            TraverseDirTree(CameraTreeView, _camRoot, 0, ref dummyRoot);
+            CameraTreeView.ExpandAll();
+
+        }
+
+        private void CameraFileSort_radioButton1_CheckedChanged(object sender, EventArgs e)
+        {
+            _cameraFileSortType = tSortType.SORT_BY_NAME;
+            ResortCameraFileList();
+        }
+
+        private void CameraFileSort_radioButton2_CheckedChanged(object sender, EventArgs e)
+        {
+            _cameraFileSortType = tSortType.SORT_BY_TYPE;
+            ResortCameraFileList();
+        }
+
+        private void CameraFileSort_radioButton3_CheckedChanged(object sender, EventArgs e)
+        {
+            _cameraFileSortType = tSortType.SORT_BY_DATE;
+            ResortCameraFileList();
+        }
+
+        private void GuessType_radioButton1_CheckedChanged(object sender, EventArgs e)
+        {
+            _guessType = tGuessType.GUESS_BY_DATE;
+        }
+
+        private void GuessType_radioButton2_CheckedChanged(object sender, EventArgs e)
+        {
+            _guessType = tGuessType.GUESS_BY_ORDER;
+        }
     }
 
-    public class DirectoryOrFile
+    public class DirectoryOrFile:IComparable<DirectoryOrFile>
     {
         private string _name;
         private string _path;
@@ -806,6 +888,7 @@ namespace Ingress
         private DOF_Type _dof_type;
         private int _size;
         private DateTime _modified;
+        static IngressForm.tSortType _sortType = IngressForm.tSortType.SORT_BY_NAME ;
 
         public enum DOF_Type { UNDEF, DIR, FILE };
 
@@ -817,6 +900,28 @@ namespace Ingress
             _sub = new List<DirectoryOrFile>();
             _dof_type = nodeType;
         }
+
+        public void SortBy (IngressForm.tSortType sortType)
+        {
+            _sortType = sortType;
+            _sub.Sort();
+        }
+
+        public int CompareTo(DirectoryOrFile other)
+        {
+            int ret = 0;
+            switch (_sortType)
+            {
+                case IngressForm.tSortType.SORT_BY_NAME:
+                    return _path.CompareTo(other.Path()) ;
+                case IngressForm.tSortType.SORT_BY_TYPE:
+                    return (ret = System.IO.Path.GetExtension(_path).CompareTo(System.IO.Path.GetExtension(other.Path()))) == 0 ? _path.CompareTo(other.Path()) : ret;
+                case IngressForm.tSortType.SORT_BY_DATE:
+                    return (ret = File.GetLastWriteTime(_path).CompareTo(File.GetLastWriteTime(other.Path()))) == 0 ? _path.CompareTo(other.Path()) : ret;
+            }
+            return ret ;
+        }
+
         public void Set(string name, string path, DirectoryOrFile parent, DOF_Type nodeType)
         {
             _name = name;
@@ -962,5 +1067,12 @@ namespace Ingress
             this.Text = text;
         }
     }
+
+    class IngressListBoxItem : System.Object
+    {
+        public string DisplayName { get; set; }
+        public DirectoryOrFile Identifier { get; set; }
+    }
+
 
 }
