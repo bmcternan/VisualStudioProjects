@@ -64,8 +64,9 @@ namespace Ingress
                 _bTreeViewInited = true;
             }
             _scenes = new List<string>();
-            SourceListBox.DisplayMember = "DisplayName";
+            SourceListBox.DisplayMember = "FormattedDisplayName";
             SourceListBox.ValueMember = "Identifier";
+
         }
 
         //protected void TraverseDirTree(DirectoryOrFile node, int level, ref TreeStore store, TreeIter iter)
@@ -384,22 +385,6 @@ namespace Ingress
         private void SourceListBox_SelectedIndexChanged(object sender, EventArgs e)
         {
             int sel = SourceListBox.SelectedIndex;
-            DestListBox.SelectedIndex = sel;
-            CamNumListBox.SelectedIndex = sel;
-        }
-
-        private void DestListBox_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            int sel = DestListBox.SelectedIndex;
-            SourceListBox.SelectedIndex = sel;
-            CamNumListBox.SelectedIndex = sel;
-        }
-
-        private void CamNumListBox_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            int sel = CamNumListBox.SelectedIndex;
-            SourceListBox.SelectedIndex = sel;
-            DestListBox.SelectedIndex = sel;
         }
 
         private void TraverseLoadMovieList (ref DirectoryOrFile _df, ref List<DirectoryOrFile> _list)
@@ -473,13 +458,13 @@ namespace Ingress
                             IngressListBoxItem ib = new IngressListBoxItem();
                             ib.DisplayName = moviesOnThisCam[j].Name() ;
                             ib.Identifier = moviesOnThisCam[j];
+                            ib.CamNum = camNum;
+                            ib.SceneName = _previousDestinationScenes[i] ;
                             SourceListBox.Items.Add(ib);
                             _destinationScenes.Add(_previousDestinationScenes[i]);
-                            DestListBox.Items.Add(_previousDestinationScenes[i]);
                             //_sourceCams.Add(_previousSourceCams[i]);
                             //CamNumListBox.Items.Add(_previousSourceCams[i]);
                             _sourceCams.Add(camNum);
-                            CamNumListBox.Items.Add(camNum);
                             break;
                         }
                     }
@@ -553,11 +538,11 @@ namespace Ingress
                 IngressListBoxItem ib = new IngressListBoxItem();
                 ib.DisplayName = moviesOnThisCam[j].Name();
                 ib.Identifier = moviesOnThisCam[j];
+                ib.CamNum = camNum;
+                ib.SceneName = _previousDestinationScenes[i];
                 SourceListBox.Items.Add(ib);
                 _destinationScenes.Add(_previousDestinationScenes[i]);
-                DestListBox.Items.Add(_previousDestinationScenes[i]);
                 _sourceCams.Add(camNum);
-                CamNumListBox.Items.Add(camNum);
             }
         }
 
@@ -590,9 +575,7 @@ namespace Ingress
                 _sources = new List<DirectoryOrFile>();
                 SourceListBox.Items.Clear();
                 _destinationScenes = new List<string>();
-                DestListBox.Items.Clear();
                 _sourceCams = new List<int>();
-                CamNumListBox.Items.Clear();
             }
 
             if(doGuess)
@@ -656,11 +639,9 @@ namespace Ingress
 
             _previousDestinationScenes = _destinationScenes;
             _destinationScenes.Clear();
-            DestListBox.Items.Clear();
 
             _previousSourceCams = _sourceCams;
             _sourceCams.Clear();
-            CamNumListBox.Items.Clear();
 
             DisableExecuteCopyButton();
         }
@@ -678,19 +659,23 @@ namespace Ingress
                 ib.DisplayName = _selectedCamNode.DorF.Name();
                 ib.Identifier = _selectedCamNode.DorF;
 
-                //SourceListBox.Items.Add(_selectedCamNode.DorF.Name());
-                SourceListBox.Items.Add(ib);
-                _sourceCams.Add(_currentCamera);
-                CamNumListBox.Items.Add(_currentCamera);
+                ////SourceListBox.Items.Add(_selectedCamNode.DorF.Name());
+                //SourceListBox.Items.Add(ib);
+                //_sourceCams.Add(_currentCamera);
+                //CamNumListBox.Items.Add(_currentCamera);
 
                 int sel = -1;
                 IngressListDialog dlg = new IngressListDialog(SceneListBox);
                 if (dlg.ShowListDialog("Select Scene", ref sel) == DialogResult.OK)
                 {
-                    DestListBox.Items.Add(SceneListBox.Items[sel]);
                     _destinationScenes.Add(_scenes[sel]);
                     //DestListBox.SelectedIndex = SceneListBox.Items.Count - 1;
-                    DestListBox.SelectedIndex = DestListBox.Items.Count - 1;
+
+                    ib.CamNum = _currentCamera;
+                    ib.SceneName = _scenes[sel];
+
+                    SourceListBox.Items.Add(ib);
+                    _sourceCams.Add(_currentCamera);
 
                     EnableExecuteCopyButton();
                 }
@@ -713,9 +698,7 @@ namespace Ingress
                 int sel = SourceListBox.SelectedIndex;
                 SourceListBox.Items.RemoveAt(sel);
                 _sources.RemoveAt(sel);
-                DestListBox.Items.RemoveAt(sel);
                 _destinationScenes.RemoveAt(sel);
-                CamNumListBox.Items.RemoveAt(sel);
                 _sourceCams.RemoveAt(sel);
 
                 if (_sources.Count == 0)
@@ -730,10 +713,12 @@ namespace Ingress
                 if (_destinationScenes[i].Length > 0)
                 {
                     string cam_name = string.Format("cam_{0:00}", _sourceCams[i]);
+                    string jobName = Path.GetFileName(_jobDir);
+                    string sceneName = _destinationScenes[i];
                     string sceneDir = _jobDir + "\\" + _destinationScenes[i] + "\\";
                     string cpCmd = string.Format("/c xcopy \"{0}\" \"{1}\" /i", _sources[i].Path(), sceneDir);
                     string destName = sceneDir + Path.GetFileName(_sources[i].Path());
-                    string mvCmd = string.Format("/c rename \"{0}\" \"{1}{2}\"", destName, cam_name, Path.GetExtension(_sources[i].Path()));
+                    string mvCmd = string.Format("/c rename \"{0}\" \"{1}_{2}_{3}{4}\"", destName, jobName, sceneName, cam_name, Path.GetExtension(_sources[i].Path()));
                     try
                     {
                         System.Diagnostics.Process cpProcess = new System.Diagnostics.Process();
@@ -1072,6 +1057,14 @@ namespace Ingress
     {
         public string DisplayName { get; set; }
         public DirectoryOrFile Identifier { get; set; }
+        public int CamNum { get; set; }
+        public string SceneName { get; set; }
+        public string FormattedDisplayName
+        {
+            get { return String.Format("{0} {1} {2}", DisplayName.PadRight(15, ' '), CamNum.ToString().PadLeft(5, ' '), SceneName);         }
+            set { string foo = value; }
+        }
+
     }
 
 

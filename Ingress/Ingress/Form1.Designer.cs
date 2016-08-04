@@ -41,11 +41,9 @@
             this.AddSceneButton = new System.Windows.Forms.Button();
             this.AddCopyButton = new System.Windows.Forms.Button();
             this.SourceListBox = new System.Windows.Forms.ListBox();
-            this.DestListBox = new System.Windows.Forms.ListBox();
             this.ExecuteCopyButton = new System.Windows.Forms.Button();
             this.CameraLabel = new System.Windows.Forms.Label();
             this.DeleteCopyButton = new System.Windows.Forms.Button();
-            this.CamNumListBox = new System.Windows.Forms.ListBox();
             this.GuessAllButton = new System.Windows.Forms.Button();
             this.GuessType_radioButton1 = new System.Windows.Forms.RadioButton();
             this.GuessType_radioButton2 = new System.Windows.Forms.RadioButton();
@@ -102,6 +100,7 @@
             // 
             // CameraTreeView
             // 
+            this.CameraTreeView.Font = new System.Drawing.Font("Lucida Console", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.CameraTreeView.Location = new System.Drawing.Point(4, 125);
             this.CameraTreeView.Margin = new System.Windows.Forms.Padding(2);
             this.CameraTreeView.Name = "CameraTreeView";
@@ -122,6 +121,7 @@
             // 
             // JobTreeView
             // 
+            this.JobTreeView.Font = new System.Drawing.Font("Lucida Console", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.JobTreeView.Location = new System.Drawing.Point(498, 120);
             this.JobTreeView.Margin = new System.Windows.Forms.Padding(2);
             this.JobTreeView.Name = "JobTreeView";
@@ -183,25 +183,17 @@
             // 
             // SourceListBox
             // 
+            this.SourceListBox.Font = new System.Drawing.Font("Lucida Console", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.SourceListBox.FormattingEnabled = true;
+            this.SourceListBox.ItemHeight = 11;
             this.SourceListBox.Location = new System.Drawing.Point(254, 132);
             this.SourceListBox.Margin = new System.Windows.Forms.Padding(2);
             this.SourceListBox.Name = "SourceListBox";
-            this.SourceListBox.Size = new System.Drawing.Size(108, 277);
+            this.SourceListBox.Size = new System.Drawing.Size(240, 268);
             this.SourceListBox.TabIndex = 14;
             this.SourceListBox.SelectedIndexChanged += new System.EventHandler(this.SourceListBox_SelectedIndexChanged);
             this.SourceListBox.DoubleClick += new System.EventHandler(this.SourceListBox_DoubleClick);
             this.SourceListBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.SourceListBox_KeyDown);
-            // 
-            // DestListBox
-            // 
-            this.DestListBox.FormattingEnabled = true;
-            this.DestListBox.Location = new System.Drawing.Point(395, 132);
-            this.DestListBox.Margin = new System.Windows.Forms.Padding(2);
-            this.DestListBox.Name = "DestListBox";
-            this.DestListBox.Size = new System.Drawing.Size(99, 277);
-            this.DestListBox.TabIndex = 15;
-            this.DestListBox.SelectedIndexChanged += new System.EventHandler(this.DestListBox_SelectedIndexChanged);
             // 
             // ExecuteCopyButton
             // 
@@ -235,15 +227,6 @@
             this.DeleteCopyButton.TabIndex = 18;
             this.DeleteCopyButton.Text = "-";
             this.DeleteCopyButton.UseVisualStyleBackColor = true;
-            // 
-            // CamNumListBox
-            // 
-            this.CamNumListBox.FormattingEnabled = true;
-            this.CamNumListBox.Location = new System.Drawing.Point(359, 132);
-            this.CamNumListBox.Name = "CamNumListBox";
-            this.CamNumListBox.Size = new System.Drawing.Size(38, 277);
-            this.CamNumListBox.TabIndex = 19;
-            this.CamNumListBox.SelectedIndexChanged += new System.EventHandler(this.CamNumListBox_SelectedIndexChanged);
             // 
             // GuessAllButton
             // 
@@ -344,11 +327,9 @@
             this.Controls.Add(this.GuessType_groupBox);
             this.Controls.Add(this.CameraFilesSort_groupBox);
             this.Controls.Add(this.GuessAllButton);
-            this.Controls.Add(this.CamNumListBox);
             this.Controls.Add(this.DeleteCopyButton);
             this.Controls.Add(this.CameraLabel);
             this.Controls.Add(this.ExecuteCopyButton);
-            this.Controls.Add(this.DestListBox);
             this.Controls.Add(this.SourceListBox);
             this.Controls.Add(this.AddCopyButton);
             this.Controls.Add(this.AddSceneButton);
@@ -389,11 +370,9 @@
         private System.Windows.Forms.Button AddSceneButton;
         private System.Windows.Forms.Button AddCopyButton;
         private System.Windows.Forms.ListBox SourceListBox;
-        private System.Windows.Forms.ListBox DestListBox;
         private System.Windows.Forms.Button ExecuteCopyButton;
         private System.Windows.Forms.Label CameraLabel;
         private System.Windows.Forms.Button DeleteCopyButton;
-        private System.Windows.Forms.ListBox CamNumListBox;
         private System.Windows.Forms.Button GuessAllButton;
         private System.Windows.Forms.RadioButton GuessType_radioButton1;
         private System.Windows.Forms.RadioButton GuessType_radioButton2;
