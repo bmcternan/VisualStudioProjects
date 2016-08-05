@@ -31,7 +31,9 @@ namespace GetNumFrames
             Shell32.Shell shell = new Shell32.Shell();
             Shell32.Folder objFolder;
 
-            objFolder = shell.NameSpace(Path.GetDirectoryName(args[0]));
+            string fullPath = Path.GetFullPath(args[0]);
+            //objFolder = shell.NameSpace(Path.GetDirectoryName(args[0]));
+            objFolder = shell.NameSpace(Path.GetDirectoryName(fullPath));
 
 
             for (int i = 0; i < short.MaxValue; i++)
