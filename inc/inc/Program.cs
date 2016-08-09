@@ -17,20 +17,21 @@ namespace inc
             bool inParse = false;
             bool formattingResNum = false;
             bool lookingForOperator = false;
+            bool escapingChar = false;
             OPERATOR op = OPERATOR.NOOP;
             string operand = "";
             string stringOut = "";
             int res = 0;
             string numFmt = "{0,0:D0}";
             string zeroString = "";
-            string operators = "0+-/*";
+            string operators = "#+-/*";
             string strIn = str + '\0'; // ensures that last character is parsed
 
             for (i = 0; i < strIn.Length; i++)
             {
                 if (formattingResNum)
                 {
-                    if (strIn[i] == '0')
+                    if (strIn[i] == '#')
                         zeroString += '0';
                     else
                     {
@@ -74,10 +75,10 @@ namespace inc
                 {
                     if (operators.IndexOf(strIn[i]) > -1)
                     {
-                        if (strIn[i] == '0')
+                        if (strIn[i] == '#')
                         {
                             formattingResNum = true;
-                            zeroString = "0";
+                            zeroString = "00";
                             lookingForOperator = false;
                         }
                         else
@@ -101,22 +102,31 @@ namespace inc
                     }
                 }
 
-                if (strIn[i] == '@')
+                if (escapingChar || (strIn[i] != '\\'))
                 {
-                    lookingForOperator = true;
+
+                    if (strIn[i] == '#')
+                    {
+                        if (!formattingResNum)
+                            lookingForOperator = true;
+                    }
+                    else if ((!formattingResNum) &&
+                             (!inParse) &&
+                             (!lookingForOperator) &&
+                             (strIn[i] != '\0'))
+                        stringOut += strIn[i];
+
+                    escapingChar = false;
                 }
-                else if ((!formattingResNum) &&
-                         (!inParse) &&
-                         (!lookingForOperator) &&
-                         (strIn[i] != '\0'))
-                    stringOut += strIn[i];
+                else
+                    escapingChar = true;
             }
 
             return stringOut;
         }
         static void Usage()
         {
-            Console.WriteLine("Usage: inc start# end# step# cmd - where any @ is replaced with sequence # - step must move start towards end!");
+            Console.WriteLine("Usage: inc start# end# step# cmd - where any # is replaced with sequence num - step must move start towards end! escape chars with \\");
         }
         static bool DoWeContinue(int start, int end, int i)
         {
@@ -163,10 +173,12 @@ namespace inc
                 return;
             }
 
+            Console.Error.WriteLine("Parsing \"" + formatString + "\"");
+
             for (i = start; DoWeContinue (start, end, i); i += step)
             {
                 string parsedString = DoParse(formatString, i);
-                Console.WriteLine("{0}:{1}", i, parsedString);
+                Console.Error.WriteLine("{0}:{1}", i, parsedString);
                 string cmd = string.Format("/c {0}", parsedString);
                 try
                 {
