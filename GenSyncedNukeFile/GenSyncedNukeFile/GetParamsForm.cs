@@ -24,6 +24,7 @@ namespace GenSyncedNukeFile
         public FinalCutProXMLBuilder GetXMLBuilder () { return _xmlBldr; }
 
         public NukeBuilder _nukeBldr = new NukeBuilder();
+        public NukeBuilder GetNukeBuilder() { return _nukeBldr; }
 
         Process _PluralizeProc = null;
 
@@ -90,10 +91,12 @@ namespace GenSyncedNukeFile
 
         private void GenerateNuke_button_Click(object sender, EventArgs e)
         {
-            _nukeBldr.GenerateNukeFile(PluralEyes_export_textBox.Text, GeneratedNukePath_textBox.Text, WriteNode_textBox.Text);
+            //_nukeBldr.GenerateNukeFile(PluralEyes_export_textBox.Text, GeneratedNukePath_textBox.Text, NukeTemplatePath_textBox.Text);
+            NukeBuilder.tNUKEFILE_ERROR err = _nukeBldr.ModifyNukeFile(PluralEyes_export_textBox.Text, NukeTemplatePath_textBox.Text, SourceBaseName_textBox.Text, GeneratedNukePath_textBox.Text, DestBaseName_textBox.Text) ;
+
         }
 
-        private void BrowseForPluralEyesExport_button_Click(object sender, EventArgs e)
+    private void BrowseForPluralEyesExport_button_Click(object sender, EventArgs e)
         {
             OpenFileDialog fc = new OpenFileDialog();
 
@@ -299,7 +302,7 @@ namespace GenSyncedNukeFile
             if (File.Exists(PluralEyes_export_textBox.Text))
             {
                 if ((GeneratedNukePath_textBox.Text.Length > 0) &&
-                    (WriteNode_textBox.Text.Length > 0))
+                    (NukeTemplatePath_textBox.Text.Length > 0))
                     this.GenerateNuke_button.Enabled = true ;
                 //else
                 //    this.GenerateNuke_button.Enabled = false;
@@ -333,10 +336,18 @@ namespace GenSyncedNukeFile
         }
         private void GeneratedNukePath_textBox_TextChanged(object sender, EventArgs e)
         {
+            if (File.Exists(GeneratedNukePath_textBox.Text))
+            {
+                string nukePath = Path.GetDirectoryName(GeneratedNukePath_textBox.Text);
+                string baseName = Path.GetFileNameWithoutExtension(nukePath);
+
+                this.DestBaseName_textBox.Text = baseName;
+            }
+
             if (File.Exists(PluralEyes_export_textBox.Text))
             {
                 if ((GeneratedNukePath_textBox.Text.Length > 0) &&
-                    (WriteNode_textBox.Text.Length > 0))
+                    (NukeTemplatePath_textBox.Text.Length > 0))
                     this.GenerateNuke_button.Enabled = true;
                 //else
                 //    this.GenerateNuke_button.Enabled = false;
@@ -345,7 +356,7 @@ namespace GenSyncedNukeFile
             //    this.GenerateNuke_button.Enabled = false;
         }
 
-        private void WriteNode_textBox_DragOver(object sender, DragEventArgs e)
+        private void NukeTemplatePath_textBox_DragOver(object sender, DragEventArgs e)
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
                 e.Effect = DragDropEffects.Copy;
@@ -353,27 +364,35 @@ namespace GenSyncedNukeFile
                 e.Effect = DragDropEffects.None;
 
         }
-        private void WriteNode_textBox_DragDrop(object sender, DragEventArgs e)
+        private void NukeTemplatePath_textBox_DragDrop(object sender, DragEventArgs e)
         {
             string[] FileList = (string[])e.Data.GetData(DataFormats.FileDrop, false);
-            WriteNode_textBox.Text = FileList[0];
-            if (WriteNode_textBox.Text.Length > 0)
+            NukeTemplatePath_textBox.Text = FileList[0];
+            if (NukeTemplatePath_textBox.Text.Length > 0)
             {
-                WriteNode_textBox.SelectionStart = PluralEyes_export_textBox.Text.Length - 1;
-                WriteNode_textBox.SelectionLength = 0;
+                NukeTemplatePath_textBox.SelectionStart = NukeTemplatePath_textBox.Text.Length - 1;
+                NukeTemplatePath_textBox.SelectionLength = 0;
             }
         }
 
-        private void WriteNode_textBox_DragEnter(object sender, DragEventArgs e)
+        private void NukeTemplatePath_textBox_DragEnter(object sender, DragEventArgs e)
         {
         }
 
-        private void WriteNode_textBox_TextChanged(object sender, EventArgs e)
+        private void NukeTemplatePath_textBox_TextChanged(object sender, EventArgs e)
         {
+            if (File.Exists(NukeTemplatePath_textBox.Text))
+            {
+                string nukePath = Path.GetDirectoryName(NukeTemplatePath_textBox.Text);
+                string baseName = Path.GetFileNameWithoutExtension(nukePath);
+
+                this.SourceBaseName_textBox.Text = baseName;
+            }
+
             if (File.Exists(PluralEyes_export_textBox.Text))
             {
-                if ((GeneratedNukePath_textBox.Text.Length > 0) &&
-                    (WriteNode_textBox.Text.Length > 0))
+                    if ((GeneratedNukePath_textBox.Text.Length > 0) &&
+                    (NukeTemplatePath_textBox.Text.Length > 0))
                     this.GenerateNuke_button.Enabled = true;
             //    else
             //        this.GenerateNuke_button.Enabled = false;
@@ -382,22 +401,8 @@ namespace GenSyncedNukeFile
             //    this.GenerateNuke_button.Enabled = false;
         }
 
-        private void BrowseWriteNodePath_button_Click(object sender, EventArgs e)
+        private void BrowseNukeTemplatePath_button_Click(object sender, EventArgs e)
         {
-            FolderBrowserDialog fc = new FolderBrowserDialog();
-
-            // Set the help text description for the FolderBrowserDialog.
-            fc.Description = "Select the directory that will contain the quick stitch files for this shot.";
-
-            // Do not allow the user to create new files via the FolderBrowserDialog.
-            fc.ShowNewFolderButton = true;
-
-            // Show the FolderBrowserDialog.
-            DialogResult result = fc.ShowDialog();
-            if (result == DialogResult.OK)
-            {
-                this.WriteNode_textBox.Text = fc.SelectedPath;
-            }
 
         }
     }

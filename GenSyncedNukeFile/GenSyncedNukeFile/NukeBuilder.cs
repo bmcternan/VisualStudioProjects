@@ -64,7 +64,7 @@ namespace GenSyncedNukeFile
         string NUKEFILE_Header =
 "#! C:/Program Files/Nuke10.0v3/nuke-10.0.3.dll -nx\n" +
 "#write_info Write1 file:\"{0}\" format:\"1024 512 1\" chans:\":rgba.red:rgba.green:rgba.blue:\" framerange:\"1 {1}\" fps:\"59.9401\" colorspace:\"rec709\" datatype:\"8 bit\" transfer:\"unknown\" views:\"main\" timecode:\"00:00:00:01\" colorManagement:\"Nuke\"\n";
-        string NUKEFILE_Header2 = 
+        string NUKEFILE_Header2 =
 "version 10.0 v3\n" +
 "define_window_layout_xml {<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
 "<layout version=\"1.0\">\n" +
@@ -94,7 +94,7 @@ namespace GenSyncedNukeFile
 "        </splitter>\n" +
 "    </window>\n" +
 "</layout>\n" +
-"}\n"  ;
+"}\n";
 
         // 0 - name Z:/CreativeStudioJobs/VR_Flex360/08_TRANSFER/EXTERNAL/SHOOT/Flexi_20160728/SortedCameras/Shot00/Shot00.nk
         // 1 - duration
@@ -110,7 +110,7 @@ namespace GenSyncedNukeFile
 " proxy_format \"1024 778 0 0 1024 778 1 1K_Super_35(full-ap)\"\n" +
 " colorManagement Nuke\n" +
 " views {{\n" +
-"  {{main #ffffff}}\n"  ;
+"  {{main #ffffff}}\n";
 
         // 0 - " file Z:/CreativeStudioJobs/VR_Flex360/08_TRANSFER/EXTERNAL/SHOOT/Flexi_20160728/SortedCameras/Shot00/Shot00_cam_05.MP4\n" +
         // 1 - duraton
@@ -119,7 +119,7 @@ namespace GenSyncedNukeFile
         // 4 - name Readn
         // 5 - node xpos
         // 6 - node ypos
-		string NUKEFILE_Read =
+        string NUKEFILE_Read =
 "Read {{\n" +
 " inputs 0\n" +
 " file {0}\n" +
@@ -135,7 +135,7 @@ namespace GenSyncedNukeFile
 " name {4}\n" +
 " xpos {5}\n" +
 " ypos {6}\n" +
-"}}\n" ;
+"}}\n";
 
         // 0 - number of cameras
         // 1 - number of cameras
@@ -154,11 +154,11 @@ namespace GenSyncedNukeFile
 "version 6\n" +
 "cameras {1}\n" +
 "size 0.3\n" +
-"keyframes 0\n" ;
+"keyframes 0\n";
 
         // 0 - cam num (starting at 1)
         // 1 - name ie: camera1
-		string NUKEFILE_CamDefault =
+        string NUKEFILE_CamDefault =
 "CameraDefault {0}\n" +
 "  name {1}\n" +
 "  enabled 1\n" +
@@ -174,27 +174,27 @@ namespace GenSyncedNukeFile
 "  links 4 1 2 3 4\n" +
 "  crop_shape 0\n" +
 "  crop_size 1 1\n" +
-"  crop_feather 0.4\n" ;
+"  crop_feather 0.4\n";
 
         // 0 - cam num (starting at 1)
         // 1 - name ie: camera1
         string NUKEFILE_Camera =
-"Camera {0}\n" + 
-"  name {1}\n" + 
-"  enabled 1\n" + 
-"  view 0\n" + 
-"  lens 1\n" + 
-"  focal_length 7.5\n" + 
-"  field_of_view 179.527\n" + 
-"  sensor_size 23.5 15.6\n" + 
-"  center_shift 0 0\n" + 
-"  distortion 0 0 0\n" + 
-"  position 0 0 0\n" + 
-"  rotation -144 0 0\n" + 
-"  links 4 1 2 3 4\n" + 
-"  crop_shape 0\n" + 
-"  crop_size 1 1\n" + 
-"  crop_feather 0.4\n"  ;
+"Camera {0}\n" +
+"  name {1}\n" +
+"  enabled 1\n" +
+"  view 0\n" +
+"  lens 1\n" +
+"  focal_length 7.5\n" +
+"  field_of_view 179.527\n" +
+"  sensor_size 23.5 15.6\n" +
+"  center_shift 0 0\n" +
+"  distortion 0 0 0\n" +
+"  position 0 0 0\n" +
+"  rotation -144 0 0\n" +
+"  links 4 1 2 3 4\n" +
+"  crop_shape 0\n" +
+"  crop_size 1 1\n" +
+"  crop_feather 0.4\n";
 
         // 0 - number of cameras
         // 1 - camera solver node xpos
@@ -237,13 +237,195 @@ namespace GenSyncedNukeFile
 " addUserKnob {20 caravr l CaraVR}\n" +
 " addUserKnob {4 viewPresets l \"View Presets\" M {main stereo cams all}}\n" +
 " addUserKnob {22 set l Set -STARTLINE T \"w = nuke.thisNode()\\nscriptViews = nuke.views()\\nviewPreset = w\\['viewPresets'].getValue()\\nselectedViews = None\\nif viewPreset == 0:\\n  selectedViews = \\['main']\\nif viewPreset == 1:\\n  stereoViews = \\['left', 'right']\\n  if set(stereoViews).issubset(set(scriptViews)):\\n    selectedViews = stereoViews\\n  else:\\n    selectedViews = None\\nelif viewPreset == 2:\\n  selectedViews = \\[v for v in scriptViews if 'cam' in v.lower()]\\nelif viewPreset == 3:\\n  selectedViews = scriptViews\\nif selectedViews:\\n  w\\['views'].fromScript(' '.join(selectedViews))\\n\"}\n" +
-"}\n" ;
+"}\n";
 
         private void AddText(FileStream fs, string value)
         {
             byte[] info = new UTF8Encoding(true).GetBytes(value);
             fs.Write(info, 0, info.Length);
         }
+
+        private readonly string[] _knownMovieTypes = new string[] { ".mp4", ".mov", ".avi" };
+
+
+        public enum tNUKEFILE_ERROR { NUKE_OK, NUKE_BAD_PLURALEYES, NUKE_BAD_SOURCE, NUKE_BAD_DEST } ;
+        public tNUKEFILE_ERROR ModifyNukeFile(string pluralEyesXMLPath, string sourceNukeFilePath, string sourceBasename, string nukeFilePath, string destBaseName)
+        {
+            // read pluraleyes xml
+            XmlDocument doc = new XmlDocument();
+            try
+            {
+                doc.Load(pluralEyesXMLPath);
+            }
+            catch (XmlException e)
+            {
+                return tNUKEFILE_ERROR.NUKE_BAD_PLURALEYES;
+            }
+
+            XmlNodeList trackNodes = doc.DocumentElement.SelectNodes("/xmeml/project/children/sequence/media/video/track");
+            foreach (XmlNode trackNode in trackNodes)
+            {
+                XmlNode startNode = trackNode.SelectSingleNode("clipitem/start");
+                int start = int.Parse(startNode.InnerText);
+                XmlNode durationNode = trackNode.SelectSingleNode("clipitem/duration");
+                int duration = int.Parse(durationNode.InnerText);
+                XmlNode pathNode = trackNode.SelectSingleNode("clipitem/file/pathurl");
+                Uri pathUri = new Uri(pathNode.InnerText);
+                string path = pathUri.LocalPath.Substring(12); // skip over \\localhost\
+
+                CameraInput camInp = new CameraInput(start, duration, path);
+                _cameras.Add(camInp);
+            }
+            if (_cameras.Count < 1)
+                return tNUKEFILE_ERROR.NUKE_BAD_PLURALEYES;
+
+            _cameras.Sort();
+
+            // find min duration
+            int minDuration = _cameras[0].Duration() - (_cameras[0].Start() < 0 ? 0 : _cameras[0].Start());
+            for (int i = 1; i < _cameras.Count; i++)
+            {
+                int duration = _cameras[i].Duration() - (_cameras[i].Start() < 0 ? 0 : _cameras[i].Start());
+                minDuration = duration < minDuration ? duration : minDuration;
+            }
+
+            // read source file
+            string source = "";
+            try
+            {
+
+                using (FileStream fsSource = new FileStream(sourceNukeFilePath,
+                    FileMode.Open, FileAccess.Read))
+                {
+
+                    // Read the source file into a byte array.
+                    byte[] bytes = new byte[fsSource.Length];
+                    int numBytesToRead = (int)fsSource.Length;
+                    int numBytesRead = 0;
+                    while (numBytesToRead > 0)
+                    {
+                        // Read may return anything from 0 to numBytesToRead.
+                        int n = fsSource.Read(bytes, numBytesRead, numBytesToRead);
+
+                        // Break when the end of the file is reached.
+                        if (n == 0)
+                            break;
+
+                        numBytesRead += n;
+                        numBytesToRead -= n;
+                    }
+                    numBytesToRead = bytes.Length;
+
+                    source = System.Text.Encoding.UTF8.GetString(bytes, 0, bytes.Length);
+                }
+            }
+            catch (FileNotFoundException ioEx)
+            {
+                Console.WriteLine(ioEx.Message);
+                return tNUKEFILE_ERROR.NUKE_BAD_SOURCE;
+            }
+
+            // replace basename
+            source = source.Replace(sourceBasename, destBaseName);
+
+            string[] lines = source.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+            List<string> linesOut = new List<string>();
+            for (int i = 0; i < lines.Length; i++)
+                linesOut.Add(lines[i]);
+
+            // replace duration in second line
+            int beginCut = lines[1].IndexOf(" framerange");
+            int endCut = lines[1].IndexOf(" fps");
+            linesOut[1] = lines[1].Substring(0, beginCut) + string.Format(" framegange:\"1 {0}\"", minDuration) + lines[1].Substring(endCut);
+
+
+            List<int> readStarts = new List<int>();
+            bool bInReadBlock = false;
+            bool bCameraFound = false;
+            int cameraIndex = 0;
+            bool bInRoot = false;
+            int linesOutIndex = 2;
+            for (int i = 2; i < lines.Length ; i++, linesOutIndex++)
+            {
+                if (bInReadBlock)
+                {
+                    if (lines[i][0] == '}')
+                    {
+                        bInReadBlock = false;
+                        bCameraFound = false;
+                    }
+
+                    if (lines[i].StartsWith(" file "))
+                    {
+                        string ext = Path.GetExtension(lines[i].Substring(7));
+                        if (_knownMovieTypes.Contains(ext.ToLower()))
+                        {
+                            // this is a movie - see if there's a cam_## in it
+                            int camIndex = lines[i].IndexOf("cam_");
+                            if (camIndex > -1)
+                            {
+                                bCameraFound = true;
+                                cameraIndex = int.Parse(lines[i].Substring(camIndex + 4, 2));
+                            }
+                        }
+                    }
+                    if (bCameraFound)
+                    {
+                        if (lines[i].StartsWith(" last "))
+                        {
+                            linesOut[linesOutIndex] = string.Format(" last {0}", _cameras[cameraIndex - 1].Duration());
+
+                            if (!lines[i+1].StartsWith(" frame_mode "))
+                            {
+                                linesOut.Insert(linesOutIndex + 1, " frame_mode \"start at\"");
+                                linesOutIndex++;
+                                linesOut.Insert(linesOutIndex + 1, string.Format(" frame {0}", _cameras[cameraIndex-1].Start()));
+                                linesOutIndex++;
+                            }
+                            else
+                            {
+                                linesOut[linesOutIndex + 1] = " frame_mode \"start at\"" ;
+                                linesOut[linesOutIndex + 2] = string.Format(" frame {0}", _cameras[cameraIndex - 1].Start()) ;
+                            }
+                        }
+                    }
+                }
+                else if (bInRoot)
+                {
+                    if (lines[i].StartsWith(" last_frame "))
+                    {
+                        linesOut[linesOutIndex] = string.Format(" last_frame {0}", minDuration);
+                    }
+                    if (lines[i][0] == '}')
+                    {
+                        bInRoot = false;
+                    }
+                }
+
+                if (lines[i].StartsWith("Read {"))
+                {
+                    bInReadBlock = true;
+                }
+                if (lines[i].StartsWith("Root {"))
+                {
+                    bInRoot = true;
+                }
+            }
+            // write nuke file
+            if (File.Exists(nukeFilePath))
+            {
+                File.Delete(nukeFilePath);
+            }
+            using (FileStream fs = File.Create(nukeFilePath))
+            {
+                for (int i = 0; i < linesOut.Count; i++)    
+                    AddText(fs, linesOut[i] + "\n");
+            }
+
+            return tNUKEFILE_ERROR.NUKE_OK;
+
+        }
+
         public void GenerateNukeFile(string pluralEyesXMLPath, string nukeFilePath, string nukeWriteNodePath)
         {
             XmlDocument doc = new XmlDocument();

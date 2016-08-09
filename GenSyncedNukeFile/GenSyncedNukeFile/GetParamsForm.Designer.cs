@@ -43,9 +43,12 @@
             this.BrowseFinalCutProXML_button = new System.Windows.Forms.Button();
             this.FinalCutProXMLPath_textBox = new System.Windows.Forms.TextBox();
             this.label4 = new System.Windows.Forms.Label();
-            this.BrowseWriteNodePath_button = new System.Windows.Forms.Button();
-            this.WriteNode_textBox = new System.Windows.Forms.TextBox();
+            this.BrowseNukeTemplatePath_button = new System.Windows.Forms.Button();
+            this.NukeTemplatePath_textBox = new System.Windows.Forms.TextBox();
             this.label5 = new System.Windows.Forms.Label();
+            this.SourceBaseName_textBox = new System.Windows.Forms.TextBox();
+            this.DestBaseName_textBox = new System.Windows.Forms.TextBox();
+            this.label6 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // label1
@@ -134,7 +137,7 @@
             // 
             // BrowseNukeFile_button
             // 
-            this.BrowseNukeFile_button.Location = new System.Drawing.Point(575, 150);
+            this.BrowseNukeFile_button.Location = new System.Drawing.Point(575, 176);
             this.BrowseNukeFile_button.Name = "BrowseNukeFile_button";
             this.BrowseNukeFile_button.Size = new System.Drawing.Size(43, 21);
             this.BrowseNukeFile_button.TabIndex = 10;
@@ -145,7 +148,7 @@
             // GeneratedNukePath_textBox
             // 
             this.GeneratedNukePath_textBox.AllowDrop = true;
-            this.GeneratedNukePath_textBox.Location = new System.Drawing.Point(196, 152);
+            this.GeneratedNukePath_textBox.Location = new System.Drawing.Point(196, 178);
             this.GeneratedNukePath_textBox.Name = "GeneratedNukePath_textBox";
             this.GeneratedNukePath_textBox.Size = new System.Drawing.Size(362, 20);
             this.GeneratedNukePath_textBox.TabIndex = 9;
@@ -157,7 +160,7 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(12, 153);
+            this.label3.Location = new System.Drawing.Point(12, 179);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(142, 13);
             this.label3.TabIndex = 8;
@@ -204,44 +207,70 @@
             this.label4.TabIndex = 14;
             this.label4.Text = "Path to Generated Final Cut Pro XML";
             // 
-            // BrowseWriteNodePath_button
+            // BrowseNukeTemplatePath_button
             // 
-            this.BrowseWriteNodePath_button.Location = new System.Drawing.Point(575, 176);
-            this.BrowseWriteNodePath_button.Name = "BrowseWriteNodePath_button";
-            this.BrowseWriteNodePath_button.Size = new System.Drawing.Size(43, 21);
-            this.BrowseWriteNodePath_button.TabIndex = 17;
-            this.BrowseWriteNodePath_button.Text = "...";
-            this.BrowseWriteNodePath_button.UseVisualStyleBackColor = true;
-            this.BrowseWriteNodePath_button.Click += new System.EventHandler(this.BrowseWriteNodePath_button_Click);
+            this.BrowseNukeTemplatePath_button.Location = new System.Drawing.Point(575, 150);
+            this.BrowseNukeTemplatePath_button.Name = "BrowseNukeTemplatePath_button";
+            this.BrowseNukeTemplatePath_button.Size = new System.Drawing.Size(43, 21);
+            this.BrowseNukeTemplatePath_button.TabIndex = 17;
+            this.BrowseNukeTemplatePath_button.Text = "...";
+            this.BrowseNukeTemplatePath_button.UseVisualStyleBackColor = true;
+            this.BrowseNukeTemplatePath_button.Click += new System.EventHandler(this.BrowseNukeTemplatePath_button_Click);
             // 
-            // WriteNode_textBox
+            // NukeTemplatePath_textBox
             // 
-            this.WriteNode_textBox.AllowDrop = true;
-            this.WriteNode_textBox.Location = new System.Drawing.Point(196, 178);
-            this.WriteNode_textBox.Name = "WriteNode_textBox";
-            this.WriteNode_textBox.Size = new System.Drawing.Size(362, 20);
-            this.WriteNode_textBox.TabIndex = 16;
-            this.WriteNode_textBox.TextChanged += new System.EventHandler(this.WriteNode_textBox_TextChanged);
-            this.WriteNode_textBox.DragDrop += new System.Windows.Forms.DragEventHandler(this.WriteNode_textBox_DragDrop);
-            this.WriteNode_textBox.DragEnter += new System.Windows.Forms.DragEventHandler(this.WriteNode_textBox_DragEnter);
-            this.WriteNode_textBox.DragOver += new System.Windows.Forms.DragEventHandler(this.WriteNode_textBox_DragOver);
+            this.NukeTemplatePath_textBox.AllowDrop = true;
+            this.NukeTemplatePath_textBox.Location = new System.Drawing.Point(196, 152);
+            this.NukeTemplatePath_textBox.Name = "NukeTemplatePath_textBox";
+            this.NukeTemplatePath_textBox.Size = new System.Drawing.Size(362, 20);
+            this.NukeTemplatePath_textBox.TabIndex = 16;
+            this.NukeTemplatePath_textBox.TextChanged += new System.EventHandler(this.NukeTemplatePath_textBox_TextChanged);
+            this.NukeTemplatePath_textBox.DragDrop += new System.Windows.Forms.DragEventHandler(this.NukeTemplatePath_textBox_DragDrop);
+            this.NukeTemplatePath_textBox.DragEnter += new System.Windows.Forms.DragEventHandler(this.NukeTemplatePath_textBox_DragEnter);
+            this.NukeTemplatePath_textBox.DragOver += new System.Windows.Forms.DragEventHandler(this.NukeTemplatePath_textBox_DragOver);
             // 
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(12, 179);
+            this.label5.Location = new System.Drawing.Point(12, 153);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(136, 13);
             this.label5.TabIndex = 15;
-            this.label5.Text = "Path for Write Node Output";
+            this.label5.Text = "Path to Template Nuke File";
+            // 
+            // SourceBaseName_textBox
+            // 
+            this.SourceBaseName_textBox.Location = new System.Drawing.Point(627, 153);
+            this.SourceBaseName_textBox.Name = "SourceBaseName_textBox";
+            this.SourceBaseName_textBox.Size = new System.Drawing.Size(83, 20);
+            this.SourceBaseName_textBox.TabIndex = 18;
+            // 
+            // DestBaseName_textBox
+            // 
+            this.DestBaseName_textBox.Location = new System.Drawing.Point(627, 179);
+            this.DestBaseName_textBox.Name = "DestBaseName_textBox";
+            this.DestBaseName_textBox.Size = new System.Drawing.Size(83, 20);
+            this.DestBaseName_textBox.TabIndex = 19;
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(634, 132);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(67, 13);
+            this.label6.TabIndex = 20;
+            this.label6.Text = "Base Names";
             // 
             // GetParamsForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(663, 249);
-            this.Controls.Add(this.BrowseWriteNodePath_button);
-            this.Controls.Add(this.WriteNode_textBox);
+            this.ClientSize = new System.Drawing.Size(722, 249);
+            this.Controls.Add(this.label6);
+            this.Controls.Add(this.DestBaseName_textBox);
+            this.Controls.Add(this.SourceBaseName_textBox);
+            this.Controls.Add(this.BrowseNukeTemplatePath_button);
+            this.Controls.Add(this.NukeTemplatePath_textBox);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.BrowseFinalCutProXML_button);
@@ -282,9 +311,12 @@
         private System.Windows.Forms.Button BrowseFinalCutProXML_button;
         private System.Windows.Forms.TextBox FinalCutProXMLPath_textBox;
         private System.Windows.Forms.Label label4;
-        private System.Windows.Forms.Button BrowseWriteNodePath_button;
-        private System.Windows.Forms.TextBox WriteNode_textBox;
+        private System.Windows.Forms.Button BrowseNukeTemplatePath_button;
+        private System.Windows.Forms.TextBox NukeTemplatePath_textBox;
         private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.TextBox SourceBaseName_textBox;
+        private System.Windows.Forms.TextBox DestBaseName_textBox;
+        private System.Windows.Forms.Label label6;
     }
 }
 
