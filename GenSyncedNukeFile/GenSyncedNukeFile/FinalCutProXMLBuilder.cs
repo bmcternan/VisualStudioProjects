@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace GenSyncedNukeFile
 {
@@ -442,7 +443,7 @@ namespace GenSyncedNukeFile
 
         List<int> _durations;
         List<string> _paths;
-        public FinalCutProXMLBuilder ()
+        public FinalCutProXMLBuilder()
         {
             _durations = new List<int>();
             _paths = new List<string>();
@@ -532,8 +533,10 @@ namespace GenSyncedNukeFile
             }
         }
 
+        public enum tGENPLURALEYESXML_ERROR { GEN_OK, NO_DIR, NO_CAM_FILES };
+
         //[STAThread]
-        public void GenPluralEyesXML(string camDir, string xmlOut)
+        public tGENPLURALEYESXML_ERROR GenPluralEyesXML(string camDir, string xmlOut)
         {
 
             // get each cam clip name and duration
@@ -543,13 +546,15 @@ namespace GenSyncedNukeFile
             if (!Directory.Exists(camDir))
             {
                 Console.WriteLine("Could not find directory \"{0}\"", camDir);
-                return;
+                MessageBox.Show(string.Format("Could not find directory \"{0}\"", camDir), "Generate PluralEyes XML ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return tGENPLURALEYESXML_ERROR.NO_DIR;
             }
             string[] files = Directory.GetFiles(camDir, camSearchName);
             if (files.Length == 0)
             {
                 Console.WriteLine("Could not find file with format {0} in directory {1}", camSearchName, camDir);
-                return;
+                MessageBox.Show(string.Format("Could not find file with format {0} in directory {1}", camSearchName, camDir), "Generate PluralEyes XML ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return tGENPLURALEYESXML_ERROR.NO_CAM_FILES;
             }
             int numCameras = files.Length;
             string baseName = Path.GetFileNameWithoutExtension(files[0]);
@@ -780,6 +785,8 @@ namespace GenSyncedNukeFile
                 AddText(fs, gXMLTail);
                 fs.Close();
             }
+
+            return tGENPLURALEYESXML_ERROR.GEN_OK;
         }
     }
 }

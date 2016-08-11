@@ -78,8 +78,8 @@ namespace GenSyncedNukeFile
             {
                 _cameraPath = this.CameraPath_textBox.Text;
                 _xmlToPluralEyesPath = this.FinalCutProXMLPath_textBox.Text;
-                this._xmlBldr.GenPluralEyesXML(_cameraPath, _xmlToPluralEyesPath);
-                this.LaunchPluralEyes_button.Enabled = true;
+                if (this._xmlBldr.GenPluralEyesXML(_cameraPath, _xmlToPluralEyesPath) == FinalCutProXMLBuilder.tGENPLURALEYESXML_ERROR.GEN_OK)
+                    this.LaunchPluralEyes_button.Enabled = true;
 
             }
             else

@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using System.Windows.Forms;
+
 
 namespace GenSyncedNukeFile
 {
@@ -257,10 +259,12 @@ namespace GenSyncedNukeFile
             {
                 doc.Load(pluralEyesXMLPath);
             }
-            catch (XmlException e)
+            catch (Exception ex) when (ex is XmlException || ex is SystemException)
             {
+                MessageBox.Show(string.Format("Could not find xml \"{0}\"", pluralEyesXMLPath), "Generate Nuke File ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return tNUKEFILE_ERROR.NUKE_BAD_PLURALEYES;
             }
+
 
             XmlNodeList trackNodes = doc.DocumentElement.SelectNodes("/xmeml/project/children/sequence/media/video/track");
             foreach (XmlNode trackNode in trackNodes)
@@ -334,9 +338,12 @@ namespace GenSyncedNukeFile
                 linesOut.Add(lines[i]);
 
             // replace duration in second line
-            int beginCut = lines[1].IndexOf(" framerange");
-            int endCut = lines[1].IndexOf(" fps");
-            linesOut[1] = lines[1].Substring(0, beginCut) + string.Format(" framegange:\"1 {0}\"", minDuration) + lines[1].Substring(endCut);
+            if (lines[1].Trim().StartsWith("#write_info"))
+            {
+                int beginCut = lines[1].IndexOf(" framerange");
+                int endCut = lines[1].IndexOf(" fps");
+                linesOut[1] = lines[1].Substring(0, beginCut) + string.Format(" framegange:\"1 {0}\"", minDuration) + lines[1].Substring(endCut);
+            }
 
 
             List<int> readStarts = new List<int>();
@@ -355,9 +362,10 @@ namespace GenSyncedNukeFile
                         bCameraFound = false;
                     }
 
-                    if (lines[i].StartsWith(" file "))
+                    if (lines[i].Trim().StartsWith("file "))
                     {
-                        string ext = Path.GetExtension(lines[i].Substring(7));
+                        string path = lines[i].Trim().Substring(6).Trim('"');
+                        string ext = Path.GetExtension(path);
                         if (_knownMovieTypes.Contains(ext.ToLower()))
                         {
                             // this is a movie - see if there's a cam_## in it
@@ -371,11 +379,11 @@ namespace GenSyncedNukeFile
                     }
                     if (bCameraFound)
                     {
-                        if (lines[i].StartsWith(" last "))
+                        if (lines[i].Trim().StartsWith("last "))
                         {
                             linesOut[linesOutIndex] = string.Format(" last {0}", _cameras[cameraIndex - 1].Duration());
 
-                            if (!lines[i+1].StartsWith(" frame_mode "))
+                            if (!lines[i+1].Trim().StartsWith("frame_mode "))
                             {
                                 linesOut.Insert(linesOutIndex + 1, " frame_mode \"start at\"");
                                 linesOutIndex++;
@@ -392,7 +400,7 @@ namespace GenSyncedNukeFile
                 }
                 else if (bInRoot)
                 {
-                    if (lines[i].StartsWith(" last_frame "))
+                    if (lines[i].Trim().StartsWith("last_frame "))
                     {
                         linesOut[linesOutIndex] = string.Format(" last_frame {0}", minDuration);
                     }
@@ -402,11 +410,11 @@ namespace GenSyncedNukeFile
                     }
                 }
 
-                if (lines[i].StartsWith("Read {"))
+                if (lines[i].Trim().StartsWith("Read {"))
                 {
                     bInReadBlock = true;
                 }
-                if (lines[i].StartsWith("Root {"))
+                if (lines[i].Trim().StartsWith("Root {"))
                 {
                     bInRoot = true;
                 }
